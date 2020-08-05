@@ -15,7 +15,6 @@ simulateSplash <- function(splashParams, originalSCE, model = "p", inputInitial=
     print("about to estimate capture efficiency")
     capEfficiency <- estimateCaptureEff(Data = initialCounts,
                                        compareData = counts(originalSCE),
-                                       method = 3,
                                        SD = SD) # what is SD? seq depth??
 
   } else {
