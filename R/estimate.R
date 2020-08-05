@@ -1,3 +1,5 @@
+#' @importFrom stats rnorm runif var
+#' @importFrom methods new
 estimateSplashParameters <- function(sce,
                                      numCells = NULL,
                                      numGenes = NULL,
@@ -6,7 +8,7 @@ estimateSplashParameters <- function(sce,
                                      genes = NULL,
                                      captureEfficiency = NULL,
                                      typeOfAmp = "PCR",
-                                     numFirstAmpCycles = 18, 
+                                     numFirstAmpCycles = 18,
                                      numSecondAmpCycles = 12,
                                      firstAmpEfficiency = NULL,
                                      secondAmpEfficiency = NULL,
@@ -16,7 +18,7 @@ estimateSplashParameters <- function(sce,
                                      protocol = "C1",
                                      totalSD = NULL)
 {
-  SF <- colSums(counts(sce)) / 500000 
+  SF <- colSums(counts(sce)) / 500000
   NORMTRY <- t(t(counts(sce)) / SF)
   if (is.null(numCells))
     numCells <- ncol(counts(sce))

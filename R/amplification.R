@@ -27,7 +27,7 @@ amplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, protoco
   {
     lapply(1:length(capturedMolecules), function(x){
 
-      X <- capturedMolecules[[x]] 
+      X <- capturedMolecules[[x]]
       A <- X * (1 + efficiencyPCR[x])^rounds
 
       zeroG <- setdiff(genes, names(A))
@@ -41,19 +41,19 @@ amplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, protoco
   else if (protocol == "10x" | protocol == "10X") # under construction
   {
     print("in the 10X amplifyStep")
-    X <- capturedMolecules * (1 + efficiencyPCR)^rounds 
+    X <- capturedMolecules * (1 + efficiencyPCR)^rounds
 
-    cellNames <- unique(unlist(lapply(names(X), function(x) substring(x, regexpr("Cell", x)[1])))) 
+    cellNames <- unique(unlist(lapply(names(X), function(x) substring(x, regexpr("Cell", x)[1]))))
 
-    lapply(cellNames, function(cellName){ 
+    lapply(cellNames, function(cellName){
       print(paste("Starting cell", cellName))
       countValues <- X[which(grepl(cellName, names(X)))]
       nonZeroNames <- names(countValues)
 
 
-      geneCellNamesForCurrentCell <- paste0(genes, "_", cellName) 
+      geneCellNamesForCurrentCell <- paste0(genes, "_", cellName)
 
-      zeroGenes <- setdiff(geneCellNamesForCurrentCell, nonZeroNames) 
+      zeroGenes <- setdiff(geneCellNamesForCurrentCell, nonZeroNames)
       zeroExpr <- rep(0, length(zeroGenes))
 
       names(zeroExpr) <- zeroGenes
@@ -68,6 +68,7 @@ amplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, protoco
 
 
 # equalitzion step
+#' @importFrom stats rmultinom
 quantCells <- function(amplifiedMolecules, pcntRange) {
 
   totalM <- round(sapply(amplifiedMolecules, function(x) sum(x)))
@@ -82,12 +83,12 @@ quantCells <- function(amplifiedMolecules, pcntRange) {
       if(totalM[i] > target){
         useMean <- target / totalM[i]
         SF <- rnorm(1, useMean, sd=.01)
-      } else {SF = rnorm(1, .95, sd=.01)} 
+      } else {SF = rnorm(1, .95, sd=.01)}
       totalM[i] <- totalM[i] * SF
       print(SF)
     }
   }
-  
+
   inputRange <- totalM
   if (any(inputRange >= 2147483647)) { # largest value in R, just rescaling.
     SCALEALL <- max(inputRange) / 2147483647

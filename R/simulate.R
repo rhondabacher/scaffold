@@ -1,3 +1,4 @@
+#' @importFrom SingleCellExperiment SingleCellExperiment
 simulateSplash <- function(splashParams, originalSCE, model = "p", inputInitial=NULL, SD)
 {
   if (is.null(inputInitial)) {
@@ -17,10 +18,10 @@ simulateSplash <- function(splashParams, originalSCE, model = "p", inputInitial=
                                        method = 3,
                                        SD = SD) # what is SD? seq depth??
 
-  } else { 
+  } else {
    capEfficiency <- splashParams@captureEfficiency
   }
-  
+
   print("finished capEfficiency")
 
   print("starting lysis")
@@ -51,7 +52,7 @@ simulateSplash <- function(splashParams, originalSCE, model = "p", inputInitial=
                                   roundsPCR = splashParams@numSecondAmpCycles,
                                   efficiencyTag = splashParams@tagEfficiency)
     print("finished sequencing")
-    SingleCellExperiment(assays = list(counts = finalCounts), 
+    SingleCellExperiment(assays = list(counts = finalCounts),
        metadata = list(initialSimCounts = initialCounts, capEfficiency = capEfficiency))
   }
   else if (splashParams@protocol == "10x" || splashParams@protocol == "10X")

@@ -1,4 +1,5 @@
-# this is step 2
+                                        # this is step 2
+#' @importFrom wrswoR sample_int_rej
 lysisStep <- function(Data, efficiencyCell = NULL, efficiencyGene = NULL){
 
   if (is.null(efficiencyGene) == TRUE) {
@@ -28,7 +29,7 @@ lysisStep <- function(Data, efficiencyCell = NULL, efficiencyGene = NULL){
 }
 
 revtStep <- function(Data, efficiencyCell = NULL, efficiencyGene = NULL,
-                     Genes=NULL){ 
+                     Genes=NULL){
 
   Size <- unlist(lapply(Data, function(x) sum(table(x))))
 
