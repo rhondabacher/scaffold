@@ -1,4 +1,4 @@
-setClass("SplashParams",
+setClass("ScaffoldParams",
          representation(numCells = "numeric",
                         numGenes = "numeric",
                         geneMeans = "numeric",
@@ -17,7 +17,7 @@ setClass("SplashParams",
                         totalSD = "numeric"))
 
 #' @importFrom utils head
-setMethod("show", signature(object = "SplashParams"),
+setMethod("show", signature(object = "ScaffoldParams"),
           function(object){
             cat("protocol:", object@protocol, "\n")
             cat("numCells:", object@numCells,"\n")

@@ -1,6 +1,7 @@
 #' @importFrom stats rnorm runif var
 #' @importFrom methods new
-estimateSplashParameters <- function(sce,
+#' @export
+estimateScaffoldParameters <- function(sce,
                                      numCells = NULL,
                                      numGenes = NULL,
                                      geneMeans = NULL,
@@ -69,7 +70,7 @@ estimateSplashParameters <- function(sce,
   {
     totalSD <- sum(counts(sce))
   }
-  return(new("SplashParams",
+  return(new("ScaffoldParams",
              numCells = numCells,
              numGenes = numGenes,
              geneMeans = geneMeans,
