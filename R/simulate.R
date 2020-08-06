@@ -1,3 +1,5 @@
+#' Run a scaffold simulation.
+#'
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @export
 simulateScaffold <- function(scaffoldParams, originalSCE, model = "p", inputInitial=NULL, SD)

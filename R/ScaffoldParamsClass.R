@@ -1,3 +1,6 @@
+#' S4 object for scaffold simulation parameters
+#'
+#' @export
 setClass("ScaffoldParams",
          representation(numCells = "numeric",
                         numGenes = "numeric",

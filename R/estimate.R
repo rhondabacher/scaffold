@@ -1,3 +1,5 @@
+#' Estimate scaffold parameters from a SingleCellExperiment.
+#'
 #' @importFrom stats rnorm runif var
 #' @importFrom methods new
 #' @export
