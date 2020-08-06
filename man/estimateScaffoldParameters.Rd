@@ -24,6 +24,41 @@ estimateScaffoldParameters(
   totalSD = NULL
 )
 }
+\arguments{
+\item{sce}{A SingleCellExperiment object used to estimate the scaffold parameters.}
+
+\item{numCells}{The number of cells to be used in the simulation. If left NULL, the number of cells in the \code{sce} object is used.}
+
+\item{numGenes}{The number of genes to be used in the simulation. If left NULL, the number of genes in the \code{sce} object is used.}
+
+\item{geneMeans}{The mean expression level of each gene. If left NULL, the means are estimated using the \code{sce} object.}
+
+\item{geneTheta}{XXTODOXX}
+
+\item{genes}{A vector of names for each gene. If left NULL, the gene names from the \code{sce} object are used.}
+
+\item{captureEfficiency}{XXTODOXX}
+
+\item{typeOfAmp}{The amplification method used in the simulation, defaults to "PCR".}
+
+\item{numFirstAmpCycles}{The number of cycles in the first amplification stage of the simulation.}
+
+\item{numSecondAmpCycles}{The number of cycles in the second amplification stage of the simulation.}
+
+\item{firstAmpEfficiency}{A value between 0 and 1 indicating the efficiency of the first simulated amplification cycle.}
+
+\item{secondAmpEfficiency}{A value between 0 and 1 indicating the efficiency of the second simulated amplification cycle.}
+
+\item{tagEfficiency}{XXTODOXX}
+
+\item{degree}{Numeric, determines the amount of perturbation applied to the simulated initial gene counts.}
+
+\item{percentRange}{A value between 0 and 1 indicating the number of samples that undergo exct diluation in the equalization step of the simulation. A negative value indicates that all samples are diluated by the same factor, resulting in no equalization performed.}
+
+\item{protocol}{The protocol to model in the simulation.}
+
+\item{totalSD}{The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object.}
+}
 \description{
 Estimate scaffold parameters from a SingleCellExperiment.
 }

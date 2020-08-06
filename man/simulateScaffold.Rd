@@ -12,6 +12,17 @@ simulateScaffold(
   SD
 )
 }
+\arguments{
+\item{scaffoldParams}{An object of class ScaffoldParams.}
+
+\item{originalSCE}{The SingleCellExperiment used to create the scaffoldParams object.}
+
+\item{model}{The probability distribution used to generate the initial gene counts. Defaults to 'p' for the Poisson distribution, but can also be set to 'nb' to use the Negative Binomial distribution.}
+
+\item{inputInitial}{A optional matrix of initial gene counts which should have the same dimension indicated in the \code{scaffoldParams} parameter. If left NULL, the initial counts will be generated according to the distribution indicated by the \code{model} parameter.}
+
+\item{SD}{The sequencing depth used to estimate capture efficiency; only used if the captureEfficient slot is not set in the \code{scaffoldParams} object.}
+}
 \description{
 Run a scaffold simulation.
 }
