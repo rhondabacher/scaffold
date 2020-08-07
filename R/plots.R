@@ -1,8 +1,14 @@
+#' Generate summary plots of simulated data
+#'
+#' @param simulatedData An object of class SingleCellExperiment generated with the \code{simulateScaffold} function.
+#' @param originalData The original SingleCellExperiment object used to initiate the simulation.
+#'
 #' @importFrom SingleCellExperiment counts
 #' @importFrom graphics lines par axis abline legend
 #' @importFrom grDevices colorRampPalette
 #' @importFrom SCnorm getSlopes
 #' @importFrom stats median quantile sd ecdf
+#' @export
 makePlots <- function(simulatedData, originalData)
 {
   simulatedCounts <- counts(simulatedData)
