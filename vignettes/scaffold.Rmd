@@ -1,0 +1,25 @@
+---
+title: "scaffold"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scaffold}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+`scaffold` is an R package for generating scRNA-seq data by
+statistically modelling each step of the experimental process. 
+
+
+```{r setup}
+library(scaffold)
+```
