@@ -33,11 +33,11 @@ estimateScaffoldParameters(
 
 \item{geneMeans}{The mean expression level of each gene. If left NULL, the means are estimated using the \code{sce} object.}
 
-\item{geneTheta}{XXTODOXX}
+\item{geneTheta}{The theta parameter used if the negative binomial distribution is chosen to generate the initial counts for each gene. Should be a numeric vector of length \code{numGenes}. If left NULL, this value is estimated from the \code{sce} object.}
 
 \item{genes}{A vector of names for each gene. If left NULL, the gene names from the \code{sce} object are used.}
 
-\item{captureEfficiency}{XXTODOXX}
+\item{captureEfficiency}{A value between 0 and 1 indicating the proportion of mRNA molecules successfully captured for the genes in each cell. If left NULL, this value is estimated using the \code{sce} object.}
 
 \item{typeOfAmp}{The amplification method used in the simulation, defaults to "PCR".}
 
@@ -45,15 +45,15 @@ estimateScaffoldParameters(
 
 \item{numSecondAmpCycles}{The number of cycles in the second amplification stage of the simulation.}
 
-\item{firstAmpEfficiency}{A value between 0 and 1 indicating the efficiency of the first simulated amplification cycle.}
+\item{firstAmpEfficiency}{A value between 0 and 1 indicating the efficiency of the first simulated amplification cycle. If set to 1, then all molecules will double each cycle.}
 
 \item{secondAmpEfficiency}{A value between 0 and 1 indicating the efficiency of the second simulated amplification cycle.}
 
-\item{tagEfficiency}{XXTODOXX}
+\item{tagEfficiency}{A value between 0 and 1 indicating the tagmentation efficiency.}
 
 \item{degree}{Numeric, determines the amount of perturbation applied to the simulated initial gene counts.}
 
-\item{percentRange}{A value between 0 and 1 indicating the number of samples that undergo exct diluation in the equalization step of the simulation. A negative value indicates that all samples are diluated by the same factor, resulting in no equalization performed.}
+\item{percentRange}{A value between 0 and 1 indicating the number of samples that undergo exact dilution in the equalization step of the simulation. A negative value indicates that all samples are diluted by the same factor, resulting in no equalization performed.}
 
 \item{protocol}{The protocol to model in the simulation.}
 
