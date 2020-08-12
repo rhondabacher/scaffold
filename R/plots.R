@@ -52,7 +52,7 @@ makePlots <- function(simulatedData, originalData)
   plot(ecdf(X$Depth), col="brown1", main="", xlab="Sequencing Depth (millions)",
        cex.axis=2, cex.lab=1.8, cex.main=2, xlim=c(0, max(X$Depth, Y$Depth)))
   plot(ecdf(Y$Depth), add=T, col="cornflowerblue")
-  legend('bottomright', c("Simulated", "EC Data"), col=c("brown1","cornflowerblue"), lwd=3)
+  legend('bottomright', c("Simulated", "Original"), col=c("brown1","cornflowerblue"), lwd=3)
 
   X <- data.frame( Depth = colSums(simulatedCounts!=0) / nrow(simulatedCounts), Species = "Simulated")
   Y <- data.frame( Depth = colSums(originalCounts!=0) / nrow(simulatedCounts), Species = "Original")
@@ -68,7 +68,7 @@ makePlots <- function(simulatedData, originalData)
   plot(ecdf(X$Depth), col="brown1", main="", xlab="Cellular Detection Rate",
        cex.axis=2, cex.lab=2, cex.main=2, xlim=c(.2, max(X$Depth, Y$Depth)))
   plot(ecdf(Y$Depth), add=T, col="cornflowerblue")
-  legend('topleft', c("Simulated", "EC Data"), col=c("brown1","cornflowerblue"), lwd=3)
+  legend('topleft', c("Simulated", "Original"), col=c("brown1","cornflowerblue"), lwd=3)
 
   XX <- sample(Genes, 100)
   X1 <- apply(simulatedCounts[XX,], 1, function(x) sum(x!=0)) / dim(simulatedCounts)[2]
@@ -88,7 +88,7 @@ makePlots <- function(simulatedData, originalData)
   plot(ecdf(X$Depth), col="brown1", main="", xlab="Dropout Rate",
        cex.axis=1.8, cex.lab=1.8, cex.main=1.8, xlim=c(0, max(X$Depth, Y$Depth)))
   plot(ecdf(Y$Depth), add=T, col="cornflowerblue")
-  legend('topleft', c("Simulated", "EC Data"), col=c("brown1","cornflowerblue"), lwd=3)
+  legend('topleft', c("Simulated", "Original"), col=c("brown1","cornflowerblue"), lwd=3)
 
   X1 <- apply(simulatedCounts, 1, function(x) sum(x!=0)) / dim(simulatedCounts)[2]
   X2 <- apply(originalCounts, 1, function(x) sum(x!=0)) / dim(originalCounts)[2]
@@ -99,7 +99,7 @@ makePlots <- function(simulatedData, originalData)
   plot(ecdf(X$Depth), col="brown1", main="", xlab="Dropout Rate",
        cex.axis=2, cex.lab=2, cex.main=2, xlim=c(0, max(X$Depth, Y$Depth)))
   plot(ecdf(Y$Depth), add=T, col="cornflowerblue")
-  legend('topleft', c("Simulated", "EC Data"), col=c("brown1","cornflowerblue"), lwd=3)
+  legend('topleft', c("Simulated", "Original"), col=c("brown1","cornflowerblue"), lwd=3)
 
   XX <- sample(Genes, 200)
 

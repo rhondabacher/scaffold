@@ -41,18 +41,19 @@ estimateScaffoldParameters <- function(sce,
 {
   SF <- colSums(counts(sce)) / 500000
   NORMTRY <- t(t(counts(sce)) / SF)
-  if (is.null(numCells))
+ 
+  if (is.null(numCells)) {
     numCells <- ncol(counts(sce))
-  if (is.null(numGenes))
+   }
+  if (is.null(numGenes)) {
     numGenes <- nrow(counts(sce))
-  if (is.null(geneMeans))
-  {
+   }
+  if (is.null(geneMeans)) {
     Mu <- apply(NORMTRY, 1, function(x) mean(x))
     Mu[is.na(Mu)] <- min(Mu, na.rm=T)
     geneMeans <- Mu
   }
-  if (is.null(geneTheta))
-  {
+  if (is.null(geneTheta)) {
     Var <- apply(NORMTRY, 1, function(x) var(x[x < quantile(x, .9)]))
     Var[is.na(Var)] <- sample(Var[!is.na(Var) & Var > quantile(Var[Var>0], .2, na.rm=T)
                                   & Var < quantile(Var[Var>0], .5, na.rm=T)],
@@ -63,32 +64,30 @@ estimateScaffoldParameters <- function(sce,
                                        sum(Theta <= 0, na.rm=T), replace=T)
     geneTheta <- Theta
   }
-  if (is.null(genes))
-  {
+  if (is.null(genes)) {
     genes <- rownames(sce)
   }
-  if (is.null(captureEfficiency))
-  {
+  if (is.null(captureEfficiency)) {
     captureEfficiency <- -1
   }
-  if (is.null(firstAmpEfficiency))
-  {
+  if (is.null(firstAmpEfficiency)) {
     firstAmpEfficiency <- rnorm(numCells, .90, .02)
   }
-  if (is.null(secondAmpEfficiency))
-  {
+  if (is.null(secondAmpEfficiency)) {
     if (protocol == "C1")
       secondAmpEfficiency <- rnorm(numCells, .90, .02)
     else
       secondAmpEfficiency <- 0.9
   }
-  if (is.null(tagEfficiency))
-  {
+  if (is.null(tagEfficiency)) {
     tagEfficiency <- runif(numCells, .95, 1)
   }
-  if (is.null(totalSD))
-  {
+  if (is.null(totalSD)) {
     totalSD <- sum(counts(sce))
+  }
+  
+  if (protocol != "C1") {
+   stop("Other protocols are currently under construction.")
   }
   return(new("ScaffoldParams",
              numCells = numCells,
