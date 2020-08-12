@@ -5,19 +5,25 @@ Version: 0.1.0
 Author: Rhonda Bacher
 Maintainer: Rhonda Bacher <rbacher@ufl.edu>
 Description: This package implements scaffold — a method to simulate scRNA-seq data.
-License: What license is it under?
-Encoding: GPL (>= 2)
+License: GPL (>= 2)
 LazyData: true
 Encoding: UTF-8
-Depends:
+Imports:
   wrswoR,
   multinomRob,
   quantreg,
   SCnorm,
   parallel,
   MASS,
-  SingleCellExperiment
-Imports:
-  yarrr
+  SingleCellExperiment,
+  yarrr,
+  methods
 URL: https://github.com/rhondabacher/scaffold
 BugReports: https://github.com/rhondabacher/scaffold/issues
+RoxygenNote: 7.1.1
+Depends: 
+    R (>= 2.10)
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

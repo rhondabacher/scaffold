@@ -8,6 +8,7 @@ redobox <- function(DATA, smallc) {
 
 # Regression using negative binomial. ignore zeros
 
+#' @importFrom MASS glm.nb
 quickreg.nb <- function(x,InputData)
 {
   Data = InputData[[1]]
@@ -49,11 +50,12 @@ quickreg.nb.wz <- function(x,InputData)
 
 
 # method to estimate parameter for capture efficiency
+#' @importFrom stats dbinom optimize
 estimateCaptureEff <- function(Data, compareData, SD) {
 
   gdetectRate <- rowSums(Data!=0) /ncol(Data)
 
-  Ptest <- rowMeans(Data) / nrow(Data) 
+  Ptest <- rowMeans(Data) / nrow(Data)
   try1 <- split(sort(Ptest), cut(seq_along(sort(Ptest)), 10, labels = FALSE))
   randG <- do.call(c,lapply(1:10, function(x) sample(names(try1[[x]]), 100)))
   minFunc <- function(inGuess){
@@ -65,7 +67,7 @@ estimateCaptureEff <- function(Data, compareData, SD) {
    simparm <- optimize(minFunc, lower=0, upper=1, tol=1e-10)$minimum
    simparm <- c(simparm, SD)
    print(simparm)
-  
+
   esteff <- rnorm(ncol(Data), simparm[1], simparm[2])
   return(esteff)
 

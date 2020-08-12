@@ -1,4 +1,27 @@
-estimateSplashParameters <- function(sce,
+#' Estimate scaffold parameters from a SingleCellExperiment.
+#'
+#' @param sce A SingleCellExperiment object used to estimate the scaffold parameters.
+#' @param numCells The number of cells to be used in the simulation. If left NULL, the number of cells in the \code{sce} object is used.
+#' @param numGenes The number of genes to be used in the simulation. If left NULL, the number of genes in the \code{sce} object is used.
+#' @param geneMeans The mean expression level of each gene. If left NULL, the means are estimated using the \code{sce} object.
+#' @param geneTheta The theta parameter used if the negative binomial distribution is chosen to generate the initial counts for each gene. Should be a numeric vector of length \code{numGenes}. If left NULL, this value is estimated from the \code{sce} object.
+#' @param genes A vector of names for each gene. If left NULL, the gene names from the \code{sce} object are used.
+#' @param captureEfficiency A value between 0 and 1 indicating the proportion of mRNA molecules successfully captured for the genes in each cell. If left NULL, this value is estimated using the \code{sce} object.
+#' @param typeOfAmp The amplification method used in the simulation, defaults to "PCR".
+#' @param numFirstAmpCycles The number of cycles in the first amplification stage of the simulation.
+#' @param numSecondAmpCycles The number of cycles in the second amplification stage of the simulation.
+#' @param firstAmpEfficiency A value between 0 and 1 indicating the efficiency of the first simulated amplification cycle. If set to 1, then all molecules will double each cycle.
+#' @param secondAmpEfficiency A value between 0 and 1 indicating the efficiency of the second simulated amplification cycle.
+#' @param tagEfficiency A value between 0 and 1 indicating the tagmentation efficiency.
+#' @param degree Numeric, determines the amount of perturbation applied to the simulated initial gene counts.
+#' @param percentRange A value between 0 and 1 indicating the number of samples that undergo exact dilution in the equalization step of the simulation. A negative value indicates that all samples are diluted by the same factor, resulting in no equalization performed.
+#' @param protocol The protocol to model in the simulation.
+#' @param totalSD The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object.
+#'
+#' @importFrom stats rnorm runif var
+#' @importFrom methods new
+#' @export
+estimateScaffoldParameters <- function(sce,
                                      numCells = NULL,
                                      numGenes = NULL,
                                      geneMeans = NULL,
@@ -6,7 +29,7 @@ estimateSplashParameters <- function(sce,
                                      genes = NULL,
                                      captureEfficiency = NULL,
                                      typeOfAmp = "PCR",
-                                     numFirstAmpCycles = 18, 
+                                     numFirstAmpCycles = 18,
                                      numSecondAmpCycles = 12,
                                      firstAmpEfficiency = NULL,
                                      secondAmpEfficiency = NULL,
@@ -16,7 +39,7 @@ estimateSplashParameters <- function(sce,
                                      protocol = "C1",
                                      totalSD = NULL)
 {
-  SF <- colSums(counts(sce)) / 500000 
+  SF <- colSums(counts(sce)) / 500000
   NORMTRY <- t(t(counts(sce)) / SF)
   if (is.null(numCells))
     numCells <- ncol(counts(sce))
@@ -67,7 +90,7 @@ estimateSplashParameters <- function(sce,
   {
     totalSD <- sum(counts(sce))
   }
-  return(new("SplashParams",
+  return(new("ScaffoldParams",
              numCells = numCells,
              numGenes = numGenes,
              geneMeans = geneMeans,

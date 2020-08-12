@@ -1,4 +1,14 @@
-
+#' Generate summary plots of simulated data
+#'
+#' @param simulatedData An object of class SingleCellExperiment generated with the \code{simulateScaffold} function.
+#' @param originalData The original SingleCellExperiment object used to initiate the simulation.
+#'
+#' @importFrom SingleCellExperiment counts
+#' @importFrom graphics lines par axis abline legend
+#' @importFrom grDevices colorRampPalette
+#' @importFrom SCnorm getSlopes
+#' @importFrom stats median quantile sd ecdf
+#' @export
 makePlots <- function(simulatedData, originalData)
 {
   simulatedCounts <- counts(simulatedData)
@@ -255,6 +265,7 @@ makeCDPdot <- function(counts, NAME) {
 }
 
 
+#' @importFrom stats na.omit density
 dotPlot <- function(SLOPES, sreg, NAME) {
   colors <- colorRampPalette(c("#00C3FF", "blue","black", "#FF0700"), bias=2)(n = length(sreg))
   Mode <- c()

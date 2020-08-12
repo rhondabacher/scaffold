@@ -1,4 +1,7 @@
-setClass("SplashParams",
+#' S4 object for scaffold simulation parameters
+#'
+#' @export
+setClass("ScaffoldParams",
          representation(numCells = "numeric",
                         numGenes = "numeric",
                         geneMeans = "numeric",
@@ -16,7 +19,8 @@ setClass("SplashParams",
                         protocol = "character",
                         totalSD = "numeric"))
 
-setMethod("show", signature(object = "SplashParams"),
+#' @importFrom utils head
+setMethod("show", signature(object = "ScaffoldParams"),
           function(object){
             cat("protocol:", object@protocol, "\n")
             cat("numCells:", object@numCells,"\n")
@@ -26,10 +30,10 @@ setMethod("show", signature(object = "SplashParams"),
             cat("genes:", head(object@genes), "...\n")
             cat("captureEfficiency:", head(object@captureEfficiency), "\n")
             cat("typeOfAmp:", object@typeOfAmp, "\n")
-            cat("numFirstAmpCycles:", object@numFirstAmpCycles, "\n") 
+            cat("numFirstAmpCycles:", object@numFirstAmpCycles, "\n")
             cat("numSecondAmpCycles:", object@numSecondAmpCycles, "\n")
-            cat("firstAmpEfficiency:", head(object@firstAmpEfficiency), "...\n") 
-            cat("secondAmpEfficiency:", head(object@secondAmpEfficiency), "...\n") 
+            cat("firstAmpEfficiency:", head(object@firstAmpEfficiency), "...\n")
+            cat("secondAmpEfficiency:", head(object@secondAmpEfficiency), "...\n")
             cat("tagEfficiency:", head(object@tagEfficiency), "...\n")
             cat("degree:", object@degree, "\n")
             cat("percentRange:", object@percentRange, "\n")
