@@ -52,7 +52,6 @@ revtStep <- function(Data, efficiencyCell = NULL, efficiencyGene = NULL,
     sampledM <- sample_int_rej(n = length(Data[[x]]), size = totalM, prob = geneProbs)
     sampledM <- Data[[x]][sampledM]
 
-    # print(x)
     return(sampledM)
   })
 }

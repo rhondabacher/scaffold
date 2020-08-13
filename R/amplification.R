@@ -76,7 +76,6 @@ quantCells <- function(amplifiedMolecules, pcntRange) {
   if (pcntRange < 0) {
     totalM <- totalM / abs(pcntRange)
   } else {
-    ## any number between 0 and 1 indicates how many samples undergo exact dilution
     target <- median(c(min(totalM), quantile(totalM, pcntRange)))
     for(i in 1:length(amplifiedMolecules)) {
 
@@ -85,7 +84,6 @@ quantCells <- function(amplifiedMolecules, pcntRange) {
         SF <- rnorm(1, useMean, sd=.01)
       } else {SF = rnorm(1, .95, sd=.01)}
       totalM[i] <- totalM[i] * SF
-      print(SF)
     }
   }
 
