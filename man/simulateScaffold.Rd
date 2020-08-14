@@ -9,7 +9,7 @@ simulateScaffold(
   originalSCE,
   model = "p",
   inputInitial = NULL,
-  SD
+  SD = 0.02
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ simulateScaffold(
 
 \item{inputInitial}{A optional matrix of initial gene counts which should have the same dimension indicated in the \code{scaffoldParams} parameter. If left NULL, the initial counts will be generated according to the distribution indicated by the \code{model} parameter.}
 
-\item{SD}{The sequencing depth used to estimate capture efficiency; only used if the captureEfficiency slot is not set in the \code{scaffoldParams} object.}
+\item{SD}{The standard deviation used to estimate capture efficiency; only used if the captureEfficiency slot is not set in the \code{scaffoldParams} object.}
 }
 \description{
 Run a scaffold simulation.

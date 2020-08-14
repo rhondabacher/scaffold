@@ -19,7 +19,7 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
   quantifiedMolecules <- amplifyStep(taggedMolecules, genes=names(taggedMolecules[[1]]), efficiencyPCR, roundsPCR, protocol = "C1")
 
   amplifiedMoleculesQuant_all_list <- lapply(1:length(quantifiedMolecules), function(x) {
-    y = quantifiedMolecules[[x]
+    y = quantifiedMolecules[[x]]
     names(y) <- paste0(names(quantifiedMolecules[[x]]),"_Cell_", x)
     return(y)})
 

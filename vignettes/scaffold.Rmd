@@ -1,6 +1,7 @@
 ---
 title: "scaffold"
-output: rmarkdown::html_vignette
+output: BiocStyle::html_document
+toc: true
 vignette: >
   %\VignetteIndexEntry{scaffold}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,12 +15,84 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+
+# scaffold: simulating single-cell RNA-seq data
+
+
 # Introduction
 
 `scaffold` is an R package for generating scRNA-seq data by
-statistically modelling each step of the experimental process. 
+statistically modelling each step of the experimental
+process. Simulation parameters can be estimated from real datasets,
+and a comprehensive plotting function is provided to generate summary
+figures comparing the real and simulated data.
 
+## Installation
 
-```{r setup}
-library(scaffold)
+Currently, the only way to install `scaffold` is on GitHub:
+
+```{r setup, eval=FALSE}
+devtools::install_github("rhondabacher/scaffold")
 ```
+
+# Usage
+
+## Estimating simulation parameters
+
+The first step in running a scaffold simulation is the estimation of
+simulation parameters from an existing scRNA-seq dataset, which should be saved as a `SingleCellExperiment` object. The
+`scaffold` package provides the `uneq_ec_data` as an example starting
+point.
+
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+library(scaffold)
+library(SingleCellExperiment)
+data(uneq_ec_data)
+sce <- SingleCellExperiment(list(counts = uneq_ec_data))
+```
+
+We then can estimate simulation parameters with the
+`estimateScaffoldParameters` function, which returns an S4 object of
+class `ScaffoldParams`.
+
+```{r}
+scaffoldParams <- estimateScaffoldParameters(sce)
+```
+
+It's worth noting that all of the parameters can also be set manually
+by passing them as options to `estimateScaffoldParameters`; see the
+function's documentation for more information.
+
+## Running scaffold simulations
+
+Once the `ScaffoldParams` object is constructed, simulations can be
+run with the `simulateScaffold` function.
+
+```{r, warning = FALSE, error = FALSE, message=FALSE}
+sce_sim <- simulateScaffold(scaffoldParams, sce)
+```
+
+`sce_sim` is an object of class `SingleCellExperiment` that
+contains the simulated gene counts. 
+
+## Visualizing simulation results
+
+`scaffold` also offers a function for generating summary figures of
+the simulation results.
+
+```{r, warning=FALSE,error=FALSE, fig.align = "center", fig.width = 14}
+makePlots(sce_sim, sce)
+```
+
+# Session info
+
+Here is the output of sessionInfo on the system on which this document was compiled:
+
+```{r}
+print(sessionInfo())
+```
+
+# Frequently Asked Questions

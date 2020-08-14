@@ -4,12 +4,12 @@
 #' @param originalSCE The SingleCellExperiment used to create the scaffoldParams object.
 #' @param model The probability distribution used to generate the initial gene counts. Defaults to 'p' for the Poisson distribution, but can also be set to 'nb' to use the Negative Binomial distribution.
 #' @param inputInitial A optional matrix of initial gene counts which should have the same dimension indicated in the \code{scaffoldParams} parameter. If left NULL, the initial counts will be generated according to the distribution indicated by the \code{model} parameter.
-#' @param SD The sequencing depth used to estimate capture efficiency; only used if the captureEfficiency slot is not set in the \code{scaffoldParams} object.
+#' @param SD The standard deviation used to estimate capture efficiency; only used if the captureEfficiency slot is not set in the \code{scaffoldParams} object.
 #'
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @export
 simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
-                             inputInitial=NULL, SD)
+                             inputInitial=NULL, SD = 0.02)
 {
   if (is.null(inputInitial)) {
   initialCounts <- generateGeneCounts(numCells = scaffoldParams@numCells,
