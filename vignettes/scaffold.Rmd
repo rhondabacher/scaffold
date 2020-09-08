@@ -1,5 +1,5 @@
 ---
-title: "scaffold"
+title: "scaffold: simulating single-cell RNA-seq data"
 output: BiocStyle::html_document
 toc: true
 vignette: >
@@ -19,8 +19,6 @@ knitr::opts_chunk$set(
 BiocStyle::markdown()
 ```
 
-# scaffold: simulating single-cell RNA-seq data
-
 
 # Introduction
 
@@ -32,7 +30,7 @@ figures comparing the real and simulated data.
 
 ## Installation
 
-Currently, the only way to install `scaffold` is on GitHub:
+To install `scaffold` via GitHub:
 
 ```{r setup, eval=FALSE}
 devtools::install_github("rhondabacher/scaffold")
