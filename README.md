@@ -4,7 +4,7 @@
 statistically modelling each step of the experimental
 process.
 
-Currently, the only way to install `scaffold` is through GitHub:
+To install `scaffold`:
 
 > devtools::install_github("rhondabacher/scaffold",
 build_vignette=TRUE)
