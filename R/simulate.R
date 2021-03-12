@@ -15,7 +15,7 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
 	numCells <- sum(scaffoldParams@numCells)
 	cellPopulation <- rep(1:length(scaffoldParams@numCells), scaffoldParams@numCells)
 	
-	if (!is.null(scaffoldParams@sepPops)) {
+	if (!is.null(scaffoldParams@sepPops[[1]])) {
 	  initialCounts <- generateGeneCounts(numCells = numCells,
 	                                      mu = scaffoldParams@geneMeans,
 	                                      theta = scaffoldParams@geneTheta,
@@ -41,7 +41,7 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
 	    return()
 	  })
   
-	} else if(is.null(sepPops)) {
+	} else if(is.null(scaffoldParams@sepPops[[1]])) {
 	  if (is.null(inputInitial)) {
 	    initialCounts <- generateGeneCounts(numCells = numCells,
 	                                        mu = scaffoldParams@geneMeans,
@@ -97,6 +97,10 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
                                   genes = scaffoldParams@genes,
                                   useUMI = scaffoldParams@useUMI)
     print("finished sequencing")
+		if(is.null(finalCounts$umi_counts)) {
+			finalCounts$umi_counts <- matrix(NA, nrow=nrow(finalCounts$counts), ncol=ncol(finalCounts$counts))
+		}
+			
     SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
        metadata = list(initialSimCounts = initialCounts, capEfficiency = capEfficiency, cellPopulation = cellPopulation))
   }

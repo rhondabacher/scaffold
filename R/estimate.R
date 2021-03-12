@@ -41,7 +41,7 @@ estimateScaffoldParameters <- function(sce,
                                      protocol = "C1",
                                      totalSD = NULL,
 									 useUMI = FALSE,
-									 sepPops = NULL)
+									 sepPops = list(NULL))
 {
   SF <- colSums(counts(sce)) / 500000
   NORMTRY <- t(t(counts(sce)) / SF)
