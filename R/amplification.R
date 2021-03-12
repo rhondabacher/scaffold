@@ -1,10 +1,15 @@
 # the first amplication
-preamplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, typeAMP){
-
-  Size <- unlist(lapply(capturedMolecules, function(x) sum(table(x))))
+preamplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, typeAMP, useUMI=FALSE){
 
   lapply(1:length(capturedMolecules), function(x){
-    X <- table(capturedMolecules[[x]])
+	 
+	if (useUMI == FALSE) {
+		X <- table(capturedMolecules[[x]])}
+	else if (useUMI == TRUE) {
+		X <- rep(1, length(capturedMolecules[[x]]))
+		names(X) <- capturedMolecules[[x]]
+	}
+	
     if (typeAMP == "PCR") {
       A <- X * (1 + efficiencyPCR[x])^rounds
     }
@@ -17,6 +22,7 @@ preamplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, type
 
     ampMolecules <- c(A, zeroExpr)
     ampMolecules <- ampMolecules[sort(names(ampMolecules))]
+
     return(ampMolecules)
   })
 }
@@ -40,27 +46,33 @@ amplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, protoco
   }
   else if (protocol == "10x" | protocol == "10X") # under construction
   {
-    print("in the 10X amplifyStep")
-    X <- capturedMolecules * (1 + efficiencyPCR)^rounds
+    print("Amplification step")
 
-    cellNames <- unique(unlist(lapply(names(X), function(x) substring(x, regexpr("Cell", x)[1]))))
+capturedMolecules <- capturedMolecules * (1 + efficiencyPCR)^rounds
 
-    lapply(cellNames, function(cellName){
-      print(paste("Starting cell", cellName))
-      countValues <- X[which(grepl(cellName, names(X)))]
-      nonZeroNames <- names(countValues)
-
-
-      geneCellNamesForCurrentCell <- paste0(genes, "_", cellName)
-
-      zeroGenes <- setdiff(geneCellNamesForCurrentCell, nonZeroNames)
-      zeroExpr <- rep(0, length(zeroGenes))
-
-      names(zeroExpr) <- zeroGenes
-      countValues <- c(zeroExpr, countValues)
-      countValues <- countValues[sort(names(countValues))]
-      return(countValues)
-    })
+    # lapply(1:length(capturedMolecules), function(x){
+ # 		easyX <- rep(1, length(capturedMolecules[[x]]))
+ # 		names(easyX) <- capturedMolecules[[x]]
+ #
+ # 	    easyX <- easyX * (1 + efficiencyPCR)^rounds
+ #
+ # 	    print(paste("Starting cell", x))
+ #
+ # 		X$ugenes <- gsub("@.*","",X$Gene)
+ #        countValues <- X[which(grepl(cellName, names(X)))]
+ #        nonZeroNames <- names(countValues)
+ #
+ #
+ #        geneCellNamesForCurrentCell <- paste0(genes, "_", cellName)
+ #
+ #        zeroGenes <- setdiff(geneCellNamesForCurrentCell, nonZeroNames)
+ #        zeroExpr <- rep(0, length(zeroGenes))
+ #
+ #        names(zeroExpr) <- zeroGenes
+ #        countValues <- c(zeroExpr, countValues)
+ #        countValues <- countValues[sort(names(countValues))]
+ #      return(countValues)
+ #    })
 
   }
 
@@ -101,7 +113,7 @@ quantCells <- function(amplifiedMolecules, pcntRange) {
     return(counts)
   })
 
-  countsList <- lapply(countsList, function(x) if(class(x) != "try-error") {
+  countsList <- lapply(countsList, function(x) if(class(x)[1] != "try-error") {
     countsX <- as.vector(x)
     names(countsX) <- rownames(x)
     return(countsX)})

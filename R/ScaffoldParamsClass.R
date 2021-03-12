@@ -17,7 +17,9 @@ setClass("ScaffoldParams",
                         degree = "numeric", # should we keep this?
                         percentRange = "numeric",
                         protocol = "character",
-                        totalSD = "numeric"))
+                        totalSD = "numeric",
+												useUMI = "logical",
+												sepPops = "list"))
 
 #' @importFrom utils head
 setMethod("show", signature(object = "ScaffoldParams"),
@@ -38,5 +40,7 @@ setMethod("show", signature(object = "ScaffoldParams"),
             cat("degree:", object@degree, "\n")
             cat("percentRange:", object@percentRange, "\n")
             cat("totalSD:", object@totalSD, "\n")
+						cat("useUMI:", object@useUMI, "\n")
+						cat("sepPops:", object@sepPops, "\n")
 
           })

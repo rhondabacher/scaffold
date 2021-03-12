@@ -17,6 +17,7 @@
 #' @param percentRange A value between 0 and 1 indicating the number of samples that undergo exact dilution in the equalization step of the simulation. A negative value indicates that all samples are diluted by the same factor, resulting in no equalization performed.
 #' @param protocol The protocol to model in the simulation.
 #' @param totalSD The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object.
+#' @param useUMI A TRUE/FALSE indicating whether the protocol should use UMI (Unique Molecular Identifier).
 #'
 #' @importFrom stats rnorm runif var
 #' @importFrom methods new
@@ -27,6 +28,7 @@ estimateScaffoldParameters <- function(sce,
                                      geneMeans = NULL,
                                      geneTheta = NULL,
                                      genes = NULL,
+									 popSep = NULL,
                                      captureEfficiency = NULL,
                                      typeOfAmp = "PCR",
                                      numFirstAmpCycles = 18,
@@ -37,14 +39,16 @@ estimateScaffoldParameters <- function(sce,
                                      degree = 5,
                                      percentRange = -1,
                                      protocol = "C1",
-                                     totalSD = NULL)
+                                     totalSD = NULL,
+									 useUMI = FALSE,
+									 sepPops = NULL)
 {
   SF <- colSums(counts(sce)) / 500000
   NORMTRY <- t(t(counts(sce)) / SF)
  
   if (is.null(numCells)) {
     numCells <- ncol(counts(sce))
-   }
+   } 
   if (is.null(numGenes)) {
     numGenes <- nrow(counts(sce))
    }
@@ -86,9 +90,10 @@ estimateScaffoldParameters <- function(sce,
     totalSD <- sum(counts(sce))
   }
   
-  if (protocol != "C1") {
-   stop("Other protocols are currently under construction.")
+  if (protocol == "10X") {
+   useUMI <- TRUE
   }
+  
   return(new("ScaffoldParams",
              numCells = numCells,
              numGenes = numGenes,
@@ -105,5 +110,7 @@ estimateScaffoldParameters <- function(sce,
              degree = degree,
              percentRange = percentRange,
              protocol = protocol,
-             totalSD = totalSD))
+             totalSD = totalSD,
+			 useUMI = useUMI,
+			 sepPops = sepPops))
 }

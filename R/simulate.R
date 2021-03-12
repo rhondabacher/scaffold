@@ -11,16 +11,52 @@
 simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
                              inputInitial=NULL, SD = 0.02)
 {
-  if (is.null(inputInitial)) {
-  initialCounts <- generateGeneCounts(numCells = scaffoldParams@numCells,
-                                      mu = scaffoldParams@geneMeans,
-                                      theta = scaffoldParams@geneTheta,
-                                      type = model,
-                                      degree = scaffoldParams@degree)
-  rownames(initialCounts) <- scaffoldParams@genes
- } else {
-  initialCounts = inputInitial
- }
+	
+	numCells <- sum(scaffoldParams@numCells)
+	cellPopulation <- rep(1:length(scaffoldParams@numCells), scaffoldParams@numCells)
+	
+	if (!is.null(scaffoldParams@sepPops)) {
+	  initialCounts <- generateGeneCounts(numCells = numCells,
+	                                      mu = scaffoldParams@geneMeans,
+	                                      theta = scaffoldParams@geneTheta,
+	                                      type = model,
+	                                      degree = scaffoldParams@degree)
+	  rownames(initialCounts) <- scaffoldParams@genes
+    
+	  cellSplit <- split(1:numCells, f=cellPopulation)
+  
+	  temp <- lapply(2:length(cellSplit), function(x) {
+    
+	    pop_temp <- initialCounts[,cellSplit[[x]]]
+	    numSamp <- nrow(initialCounts) * scaffoldParams@sepPops$propGenes[(x-1)]
+	    selectGenes <- sample(1:nrow(initialCounts), numSamp)			
+	    fc_genes <- rnorm(length(selectGenes), mean = scaffoldParams@sepPops$fc[(x-1)], sd=.4) ## Get these from somewhere!!
+	    fc_mat <- sapply(fc_genes, function(y) {
+	      rnorm(ncol(pop_temp), mean = y, sd = .1) #so not every value multipled exactly the same
+	    })
+	    pop_temp[selectGenes,] <- pop_temp[selectGenes,] * t(fc_mat)
+    
+    
+	    initialCounts[,cellSplit[[x]]] <- pop_temp
+	    return()
+	  })
+  
+	} else if(is.null(sepPops)) {
+	  if (is.null(inputInitial)) {
+	    initialCounts <- generateGeneCounts(numCells = numCells,
+	                                        mu = scaffoldParams@geneMeans,
+	                                        theta = scaffoldParams@geneTheta,
+	                                        type = model,
+	                                        degree = scaffoldParams@degree)
+	    rownames(initialCounts) <- scaffoldParams@genes
+	  } else {
+	    initialCounts = inputInitial
+	  }
+	}
+  
+
+ 
+ 
   if (scaffoldParams@captureEfficiency[1] == -1) {
     print("about to estimate capture efficiency")
     capEfficiency <- estimateCaptureEff(Data = initialCounts,
@@ -33,25 +69,23 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
 
   print("finished capEfficiency")
 
-  print("starting lysis")
-  capturedMolecules <- lysisStep(round(initialCounts), capEfficiency)
-  print("finished lysis")
+  print("starting lysis and rev tran")
+  efficiencyRT <- runif(numCells, .95, .95) # for now...
+  capturedMolecules <- captureStep(round(initialCounts), captureEffCell=capEfficiency, 
+                                   rtEffCell = efficiencyRT, useUMI = scaffoldParams@useUMI)
+  print("finished lysis and revt")
 
   # Now we split between the different protocols
 
   if (scaffoldParams@protocol == "C1")
   {
-    print("starting revt")
-    efficiencyRT <- runif(scaffoldParams@numCells, .95, .95) # for now...
-    capturedMolecules2 <- revtStep(capturedMolecules, efficiencyRT, Genes=scaffoldParams@genes)
-    print("finished revt")
-
     print("starting preamplify")
-    amplifiedMolecules <- preamplifyStep(capturedMolecules2,
+    amplifiedMolecules <- preamplifyStep(capturedMolecules,
                                          genes=scaffoldParams@genes,
                                          efficiencyPCR = scaffoldParams@firstAmpEfficiency,
                                          rounds = scaffoldParams@numFirstAmpCycles,
-                                         typeAMP = scaffoldParams@typeOfAmp)
+                                         typeAMP = scaffoldParams@typeOfAmp,
+                                         useUMI = scaffoldParams@useUMI)
     print("finished preamplify")
     print("starting sequencing")
     finalCounts <- sequenceStepC1(amplifiedMolecules=amplifiedMolecules,
@@ -59,21 +93,25 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
                                   totalSD = scaffoldParams@totalSD,
                                   efficiencyPCR = scaffoldParams@secondAmpEfficiency,
                                   roundsPCR = scaffoldParams@numSecondAmpCycles,
-                                  efficiencyTag = scaffoldParams@tagEfficiency)
+                                  efficiencyTag = scaffoldParams@tagEfficiency,
+                                  genes = scaffoldParams@genes,
+                                  useUMI = scaffoldParams@useUMI)
     print("finished sequencing")
-    SingleCellExperiment(assays = list(counts = finalCounts),
-       metadata = list(initialSimCounts = initialCounts, capEfficiency = capEfficiency))
+    SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
+       metadata = list(initialSimCounts = initialCounts, capEfficiency = capEfficiency, cellPopulation = cellPopulation))
   }
   else if (scaffoldParams@protocol == "10x" || scaffoldParams@protocol == "10X")
   {
     print("starting sequencing")
-    finalCounts <- sequenceStep10X(capturedMolecules, pcntRange = scaffoldParams@percentRange,
+    finalCounts <- sequenceStep10X(capturedMolecules, 
                                 totalSD = scaffoldParams@totalSD,
                                 efficiencyPCR = scaffoldParams@secondAmpEfficiency,
                                 roundsPCR = scaffoldParams@numSecondAmpCycles,
-                                genes=scaffoldParams@genes)
+                                genes = scaffoldParams@genes,
+																useUMI = scaffoldParams@useUMI)
     print("finished sequencing")
-    SingleCellExperiment(assays = list(counts = finalCounts))
+    SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
+       metadata = list(initialSimCounts = initialCounts, capEfficiency = capEfficiency, cellPopulation = cellPopulation))
   }
 
 }
