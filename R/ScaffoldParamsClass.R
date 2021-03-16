@@ -14,7 +14,7 @@ setClass("ScaffoldParams",
                         firstAmpEfficiency = "numeric",
                         secondAmpEfficiency = "numeric",
                         tagEfficiency = "numeric",
-                        degree = "numeric", # should we keep this?
+                        degree = "numeric",
                         percentRange = "numeric",
                         protocol = "character",
                         totalSD = "numeric",
@@ -41,6 +41,6 @@ setMethod("show", signature(object = "ScaffoldParams"),
             cat("percentRange:", object@percentRange, "\n")
             cat("totalSD:", object@totalSD, "\n")
 						cat("useUMI:", object@useUMI, "\n")
-						cat("sepPops:", object@sepPops, "\n")
+						cat("sepPops:", head(object@sepPops), "\n")
 
           })

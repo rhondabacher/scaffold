@@ -1,12 +1,13 @@
 # the first amplication
+#' @export
 preamplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, typeAMP, useUMI=FALSE){
 
   lapply(1:length(capturedMolecules), function(x){
 	 
 	if (useUMI == FALSE) {
-		X <- table(capturedMolecules[[x]])}
+		X <- Rfast::Table(capturedMolecules[[x]])}
 	else if (useUMI == TRUE) {
-		X <- rep(1, length(capturedMolecules[[x]]))
+		X <- Rfast::rep_col(1, length(capturedMolecules[[x]]))
 		names(X) <- capturedMolecules[[x]]
 	}
 	
@@ -17,16 +18,13 @@ preamplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, type
       A <- X * (1 + efficiencyPCR[x])*rounds
     }
 
-    zeroG <- setdiff(genes, names(A))
-    zeroExpr <- rep(0, length(zeroG)); names(zeroExpr) <- zeroG
-
-    ampMolecules <- c(A, zeroExpr)
-    ampMolecules <- ampMolecules[sort(names(ampMolecules))]
-
+	ampMolecules <- A
     return(ampMolecules)
   })
 }
+
 # the second amplification step, this needs to check for protocol and have a separate body for 10x
+#' @export
 amplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, protocol){
 
   if (protocol == "C1")
@@ -36,11 +34,7 @@ amplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, protoco
       X <- capturedMolecules[[x]]
       A <- X * (1 + efficiencyPCR[x])^rounds
 
-      zeroG <- setdiff(genes, names(A))
-      zeroExpr <- rep(0, length(zeroG)); names(zeroExpr) <- zeroG
-
-      ampMolecules <- c(A, zeroExpr)
-      ampMolecules <- ampMolecules[sort(names(ampMolecules))]
+      ampMolecules <- A 
       return(ampMolecules)
     })
   }
@@ -48,31 +42,7 @@ amplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, protoco
   {
     print("Amplification step")
 
-capturedMolecules <- capturedMolecules * (1 + efficiencyPCR)^rounds
-
-    # lapply(1:length(capturedMolecules), function(x){
- # 		easyX <- rep(1, length(capturedMolecules[[x]]))
- # 		names(easyX) <- capturedMolecules[[x]]
- #
- # 	    easyX <- easyX * (1 + efficiencyPCR)^rounds
- #
- # 	    print(paste("Starting cell", x))
- #
- # 		X$ugenes <- gsub("@.*","",X$Gene)
- #        countValues <- X[which(grepl(cellName, names(X)))]
- #        nonZeroNames <- names(countValues)
- #
- #
- #        geneCellNamesForCurrentCell <- paste0(genes, "_", cellName)
- #
- #        zeroGenes <- setdiff(geneCellNamesForCurrentCell, nonZeroNames)
- #        zeroExpr <- rep(0, length(zeroGenes))
- #
- #        names(zeroExpr) <- zeroGenes
- #        countValues <- c(zeroExpr, countValues)
- #        countValues <- countValues[sort(names(countValues))]
- #      return(countValues)
- #    })
+	capturedMolecules <- capturedMolecules * (1 + efficiencyPCR)^rounds
 
   }
 
@@ -81,6 +51,7 @@ capturedMolecules <- capturedMolecules * (1 + efficiencyPCR)^rounds
 
 # equalitzion step
 #' @importFrom stats rmultinom
+#' @export
 quantCells <- function(amplifiedMolecules, pcntRange) {
 
   totalM <- round(sapply(amplifiedMolecules, function(x) sum(x)))

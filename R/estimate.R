@@ -27,6 +27,7 @@ estimateScaffoldParameters <- function(sce,
                                      numGenes = NULL,
                                      geneMeans = NULL,
                                      geneTheta = NULL,
+									 totalTranscripts=NULL,
                                      genes = NULL,
 									 popSep = NULL,
                                      captureEfficiency = NULL,
@@ -36,19 +37,24 @@ estimateScaffoldParameters <- function(sce,
                                      firstAmpEfficiency = NULL,
                                      secondAmpEfficiency = NULL,
                                      tagEfficiency = NULL,
-                                     degree = 5,
+                                     degree = NULL,
                                      percentRange = -1,
                                      protocol = "C1",
                                      totalSD = NULL,
 									 useUMI = FALSE,
 									 sepPops = list(NULL))
 {
-  SF <- colSums(counts(sce)) / 500000
+  if(is.null(totalTranscripts) & useUMI == FALSE) totalTranscripts <- 500000
+	  
+  if(is.null(totalTranscripts) & useUMI == TRUE) totalTranscripts <- 10000	  
+	  
+  SF <- colSums(counts(sce)) / totalTranscripts
   NORMTRY <- t(t(counts(sce)) / SF)
  
   if (is.null(numCells)) {
     numCells <- ncol(counts(sce))
    } 
+   
   if (is.null(numGenes)) {
     numGenes <- nrow(counts(sce))
    }
@@ -75,16 +81,31 @@ estimateScaffoldParameters <- function(sce,
     captureEfficiency <- -1
   }
   if (is.null(firstAmpEfficiency)) {
-    firstAmpEfficiency <- rnorm(numCells, .90, .02)
+    firstAmpEfficiency <- rnorm(sum(numCells), .90, .02)
   }
   if (is.null(secondAmpEfficiency)) {
     if (protocol == "C1")
-      secondAmpEfficiency <- rnorm(numCells, .90, .02)
+      secondAmpEfficiency <- rnorm(sum(numCells), .90, .02)
     else
       secondAmpEfficiency <- 0.9
   }
   if (is.null(tagEfficiency)) {
-    tagEfficiency <- runif(numCells, .95, 1)
+    tagEfficiency <- runif(sum(numCells), .95, 1)
+  }
+  
+  if(is.null(degree)) {
+  	degree <- c()
+    mycomb <- combn(sum(numCells), 2)
+	
+    lib.size <- colSums(counts(sce))
+  	if (sum(numCells) != length(lib.size)) {
+  		lib.size <- sample(lib.size, sum(numCells), replace=TRUE)
+  	}
+	
+    allComb <- sapply(lib.size, function(x) apply(mycomb,2,function(y) x / lib.size[y[2]]))
+	
+    degree[1] <- quantile(allComb, .05)	
+	degree[2] <- quantile(allComb, .95)
   }
   if (is.null(totalSD)) {
     totalSD <- sum(counts(sce))

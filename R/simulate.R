@@ -25,21 +25,24 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
     
 	  cellSplit <- split(1:numCells, f=cellPopulation)
   
-	  temp <- lapply(2:length(cellSplit), function(x) {
-    
-	    pop_temp <- initialCounts[,cellSplit[[x]]]
-	    numSamp <- nrow(initialCounts) * scaffoldParams@sepPops$propGenes[(x-1)]
-	    selectGenes <- sample(1:nrow(initialCounts), numSamp)			
-	    fc_genes <- rnorm(length(selectGenes), mean = scaffoldParams@sepPops$fc[(x-1)], sd=.4) ## Get these from somewhere!!
-	    fc_mat <- sapply(fc_genes, function(y) {
-	      rnorm(ncol(pop_temp), mean = y, sd = .1) #so not every value multipled exactly the same
-	    })
-	    pop_temp[selectGenes,] <- pop_temp[selectGenes,] * t(fc_mat)
-    
-    
-	    initialCounts[,cellSplit[[x]]] <- pop_temp
-	    return()
-	  })
+	  temp_counts <- lapply(2:length(cellSplit), function(x) {
+      
+	       pop_temp <- data.matrix(initialCounts[,cellSplit[[x]]])
+	       numSamp <- nrow(initialCounts) * scaffoldParams@sepPops$propGenes[(x-1)]
+	       selectGenes <- sample(1:nrow(initialCounts), numSamp)			
+	       fc_genes <- abs(rnorm(length(selectGenes), mean = scaffoldParams@sepPops$fc[(x-1)], sd=.4))
+	       flipfc <- sample(1:length(fc_genes), length(fc_genes) / 2)
+	       fc_genes[flipfc] <- 1/ fc_genes[flipfc]
+	       fc_mat <- sapply(fc_genes, function(y) {
+	         abs(rnorm(ncol(pop_temp), mean = y, sd = .1)) #so not every value multipled exactly the same
+	       })
+	       pop_temp[selectGenes,] <- pop_temp[selectGenes,] * t(fc_mat)
+      
+	       return(pop_temp)
+	     })
+	     # Put back together
+	     initialCounts <- cbind(initialCounts[,cellSplit[[1]]], do.call(cbind, temp_counts))
+  
   
 	} else if(is.null(scaffoldParams@sepPops[[1]])) {
 	  if (is.null(inputInitial)) {
@@ -102,7 +105,8 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
 		}
 			
     SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
-       metadata = list(initialSimCounts = initialCounts, capEfficiency = capEfficiency, cellPopulation = cellPopulation))
+       metadata = list(initialSimCounts = initialCounts),
+			 colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)))
   }
   else if (scaffoldParams@protocol == "10x" || scaffoldParams@protocol == "10X")
   {
@@ -115,7 +119,8 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
 																useUMI = scaffoldParams@useUMI)
     print("finished sequencing")
     SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
-       metadata = list(initialSimCounts = initialCounts, capEfficiency = capEfficiency, cellPopulation = cellPopulation))
+       metadata = list(initialSimCounts = initialCounts),
+			 colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)))
   }
 
 }

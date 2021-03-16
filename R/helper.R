@@ -1,7 +1,8 @@
+#' @export
 redobox <- function(DATA, smallc) {
 
   DATA[DATA <= smallc] <- NA #truncate some values first, usually just zero
-  y <- log(DATA)
+  y <- Rfast::Log(DATA)
 
   return(y)
 }
@@ -21,7 +22,7 @@ quickreg.nb <- function(x,InputData)
   Y <- Data[X, ]
   ok <- intersect(ok, names(Y))
   # Fit Neg. Bin. GLM
-  slope <- try(glm.nb(ceiling(Y[ok]) ~ log(SeqDepth)[ok], maxit=10)$coef[2], silent=TRUE)
+  slope <- try(glm.nb(ceiling(Y[ok]) ~ Rfast::Log(SeqDepth)[ok], maxit=10)$coef[2], silent=TRUE)
   slope <- as.numeric(slope)
   names(slope) <- X
 
@@ -41,7 +42,7 @@ quickreg.nb.wz <- function(x,InputData)
   Y <- Data[X, ]
   ok <- intersect(ok, names(Y))
   # Fit Neg. Bin. GLM
-  slope <- try(glm.nb(ceiling(Y[ok]) ~ log(SeqDepth)[ok], maxit=10)$coef[2], silent=TRUE)
+  slope <- try(glm.nb(ceiling(Y[ok]) ~ Rfast::Log(SeqDepth)[ok], maxit=10)$coef[2], silent=TRUE)
   slope <- as.numeric(slope)
   names(slope) <- X
 
@@ -51,12 +52,13 @@ quickreg.nb.wz <- function(x,InputData)
 
 # method to estimate parameter for capture efficiency
 #' @importFrom stats dbinom optimize
+#' @export
 estimateCaptureEff <- function(Data, compareData, SD) {
 
   gdetectRate <- rowSums(Data!=0) /ncol(Data)
 
   Ptest <- rowMeans(Data) / nrow(Data)
-  try1 <- split(sort(Ptest), cut(seq_along(sort(Ptest)), 10, labels = FALSE))
+  try1 <- split(Rfast::Sort(Ptest), cut(seq_along(Rfast::Sort(Ptest)), 10, labels = FALSE))
   randG <- do.call(c,lapply(1:10, function(x) sample(names(try1[[x]]), 100)))
   minFunc <- function(inGuess){
      tt <- dbinom(0, round(inGuess*nrow(Data)), Ptest[randG], log = TRUE)
