@@ -34,7 +34,7 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 	 amplifiedMoleculesQuant_all <- do.call(c, amplifiedMoleculesQuant_all_list)
 	 amplifiedMoleculesQuant_all_list <- NULL
 
-	 geneProbs_all <- log(amplifiedMoleculesQuant_all / sum(as.numeric(amplifiedMoleculesQuant_all)))
+	 geneProbs_all <- Rfast::Log(amplifiedMoleculesQuant_all / sum(as.numeric(amplifiedMoleculesQuant_all)))
 
 	 counts <- try(rmultinom(n=1, size=totalSD, prob=exp(geneProbs_all)), silent=T)
 
