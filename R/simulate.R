@@ -2,24 +2,21 @@
 #'
 #' @param scaffoldParams An object of class ScaffoldParams.
 #' @param originalSCE The SingleCellExperiment used to create the scaffoldParams object.
-#' @param model The probability distribution used to generate the initial gene counts. Defaults to 'p' for the Poisson distribution, but can also be set to 'nb' to use the Negative Binomial distribution.
 #' @param inputInitial A optional matrix of initial gene counts which should have the same dimension indicated in the \code{scaffoldParams} parameter. If left NULL, the initial counts will be generated according to the distribution indicated by the \code{model} parameter.
-#' @param SD The standard deviation used to estimate capture efficiency; only used if the captureEfficiency slot is not set in the \code{scaffoldParams} object.
 #'
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @export
-simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
-                             inputInitial=NULL, SD = 0.02)
+simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
 {
 	
 	numCells <- sum(scaffoldParams@numCells)
 	cellPopulation <- rep(1:length(scaffoldParams@numCells), scaffoldParams@numCells)
 	
-	if (!is.null(scaffoldParams@sepPops[[1]])) {
+	if (!is.null(scaffoldParams@usePops[[1]])) {
 	  initialCounts <- generateGeneCounts(numCells = numCells,
 	                                      mu = scaffoldParams@geneMeans,
 	                                      theta = scaffoldParams@geneTheta,
-	                                      type = model,
+	                                      type = scaffoldParams@model,
 	                                      degree = scaffoldParams@degree)
 	  rownames(initialCounts) <- scaffoldParams@genes
     
@@ -28,9 +25,9 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
 	  temp_counts <- lapply(2:length(cellSplit), function(x) {
       
 	       pop_temp <- data.matrix(initialCounts[,cellSplit[[x]]])
-	       numSamp <- nrow(initialCounts) * scaffoldParams@sepPops$propGenes[(x-1)]
+	       numSamp <- nrow(initialCounts) * scaffoldParams@usePops$propGenes[(x-1)]
 	       selectGenes <- sample(1:nrow(initialCounts), numSamp)			
-	       fc_genes <- abs(rnorm(length(selectGenes), mean = scaffoldParams@sepPops$fc[(x-1)], sd=.4))
+	       fc_genes <- abs(rnorm(length(selectGenes), mean = scaffoldParams@usePops$fc[(x-1)], sd=.4))
 	       flipfc <- sample(1:length(fc_genes), length(fc_genes) / 2)
 	       fc_genes[flipfc] <- 1/ fc_genes[flipfc]
 	       fc_mat <- sapply(fc_genes, function(y) {
@@ -44,12 +41,12 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
 	     initialCounts <- cbind(initialCounts[,cellSplit[[1]]], do.call(cbind, temp_counts))
   
   
-	} else if(is.null(scaffoldParams@sepPops[[1]])) {
+	} else if(is.null(scaffoldParams@usePops[[1]])) {
 	  if (is.null(inputInitial)) {
 	    initialCounts <- generateGeneCounts(numCells = numCells,
 	                                        mu = scaffoldParams@geneMeans,
 	                                        theta = scaffoldParams@geneTheta,
-	                                        type = model,
+	                                        type = scaffoldParams@model,
 	                                        degree = scaffoldParams@degree)
 	    rownames(initialCounts) <- scaffoldParams@genes
 	  } else {
@@ -63,8 +60,7 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
   if (scaffoldParams@captureEfficiency[1] == -1) {
     print("about to estimate capture efficiency")
     capEfficiency <- estimateCaptureEff(Data = initialCounts,
-                                       compareData = counts(originalSCE),
-                                       SD = SD) # what is SD? seq depth??
+                                       compareData = counts(originalSCE))
 
   } else {
    capEfficiency <- scaffoldParams@captureEfficiency
@@ -73,9 +69,10 @@ simulateScaffold <- function(scaffoldParams, originalSCE, model = "p",
   print("finished capEfficiency")
 
   print("starting lysis and rev tran")
-  efficiencyRT <- runif(numCells, .95, .95) # for now...
-  capturedMolecules <- captureStep(round(initialCounts), captureEffCell=capEfficiency, 
-                                   rtEffCell = efficiencyRT, useUMI = scaffoldParams@useUMI)
+  capturedMolecules <- captureStep(round(initialCounts), 
+																		captureEffCell=capEfficiency, 
+                                    rtEffCell = scaffoldParams@efficiencyRT, 
+																		useUMI = scaffoldParams@useUMI)
   print("finished lysis and revt")
 
   # Now we split between the different protocols

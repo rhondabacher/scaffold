@@ -27,7 +27,7 @@
 
 generateGeneCounts <- function(numCells, mu, theta, type, degree) {
 	
- #multiple options just in case, mainly use the poisson option.
+ # multiple options just in case, mainly use the poisson option.
   if(type=='nb') {
     R <- (sapply(1:length(mu), function(x) rnegbin(numCells, mu[x], theta[x])))
 

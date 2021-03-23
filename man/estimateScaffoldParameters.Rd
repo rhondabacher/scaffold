@@ -10,18 +10,23 @@ estimateScaffoldParameters(
   numGenes = NULL,
   geneMeans = NULL,
   geneTheta = NULL,
+  totalTranscripts = NULL,
   genes = NULL,
   captureEfficiency = NULL,
+  efficiencyRT = NULL,
   typeOfAmp = "PCR",
   numFirstAmpCycles = 18,
   numSecondAmpCycles = 12,
   firstAmpEfficiency = NULL,
   secondAmpEfficiency = NULL,
   tagEfficiency = NULL,
-  degree = 5,
+  degree = NULL,
   percentRange = -1,
   protocol = "C1",
-  totalSD = NULL
+  totalSD = NULL,
+  useUMI = FALSE,
+  model = "p",
+  usePops = NULL
 )
 }
 \arguments{
@@ -58,6 +63,10 @@ estimateScaffoldParameters(
 \item{protocol}{The protocol to model in the simulation.}
 
 \item{totalSD}{The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object.}
+
+\item{useUMI}{A TRUE/FALSE indicating whether the protocol should use UMI (Unique Molecular Identifier).}
+
+\item{model}{The probability distribution used to generate the initial gene counts. Defaults to 'p' for the Poisson distribution, but can also be set to 'nb' to use the Negative Binomial distribution.}
 }
 \description{
 Estimate scaffold parameters from a SingleCellExperiment.

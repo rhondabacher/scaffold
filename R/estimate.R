@@ -18,101 +18,112 @@
 #' @param protocol The protocol to model in the simulation.
 #' @param totalSD The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object.
 #' @param useUMI A TRUE/FALSE indicating whether the protocol should use UMI (Unique Molecular Identifier).
+#' @param model The probability distribution used to generate the initial gene counts. Defaults to 'p' for the Poisson distribution, but can also be set to 'nb' to use the Negative Binomial distribution.
 #'
 #' @importFrom stats rnorm runif var
 #' @importFrom methods new
 #' @export
 estimateScaffoldParameters <- function(sce,
-                                     numCells = NULL,
-                                     numGenes = NULL,
-                                     geneMeans = NULL,
-                                     geneTheta = NULL,
-									 totalTranscripts=NULL,
-                                     genes = NULL,
-									 popSep = NULL,
-                                     captureEfficiency = NULL,
-                                     typeOfAmp = "PCR",
-                                     numFirstAmpCycles = 18,
-                                     numSecondAmpCycles = 12,
-                                     firstAmpEfficiency = NULL,
-                                     secondAmpEfficiency = NULL,
-                                     tagEfficiency = NULL,
-                                     degree = NULL,
-                                     percentRange = -1,
-                                     protocol = "C1",
-                                     totalSD = NULL,
-									 useUMI = FALSE,
-									 sepPops = list(NULL))
+                                       numCells = NULL,
+                                       numGenes = NULL,
+                                       geneMeans = NULL,
+                                       geneTheta = NULL,
+                                       totalTranscripts = NULL,
+                                       genes = NULL,
+																			 # geneEfficiency = NULL,
+                                       captureEfficiency = NULL,
+																			 efficiencyRT = NULL,
+                                       typeOfAmp = "PCR",
+                                       numFirstAmpCycles = 18,
+                                       numSecondAmpCycles = 12,
+                                       firstAmpEfficiency = NULL,
+                                       secondAmpEfficiency = NULL,
+                                       tagEfficiency = NULL,
+                                       degree = NULL,
+                                       percentRange = -1,
+                                       protocol = "C1",
+                                       totalSD = NULL,
+                                       useUMI = FALSE,
+                                       model = 'p',
+                                       usePops = NULL)
 {
-  if(is.null(totalTranscripts) & useUMI == FALSE) totalTranscripts <- 500000
-	  
-  if(is.null(totalTranscripts) & useUMI == TRUE) totalTranscripts <- 10000	  
-	  
-  SF <- colSums(counts(sce)) / totalTranscripts
-  NORMTRY <- t(t(counts(sce)) / SF)
- 
+  if(is.null(totalTranscripts)) totalTranscripts <- 300000
+  # if(is.null(totalTranscripts) & useUMI == FALSE) totalTranscripts <- 300000
+  
+  # if(is.null(totalTranscripts) & useUMI == TRUE) totalTranscripts <- 10000	
+  
+  scaleFactor <- colSums(counts(sce)) / totalTranscripts
+  scaleData <- t(t(counts(sce)) / scaleFactor)
+  
   if (is.null(numCells)) {
     numCells <- ncol(counts(sce))
-   } 
-   
+  } 
+  
   if (is.null(numGenes)) {
     numGenes <- nrow(counts(sce))
-   }
+  }
   if (is.null(geneMeans)) {
-    Mu <- apply(NORMTRY, 1, function(x) mean(x))
+    Mu <- rowMeans(scaleData)
     Mu[is.na(Mu)] <- min(Mu, na.rm=T)
     geneMeans <- Mu
   }
-  if (is.null(geneTheta)) {
-    Var <- apply(NORMTRY, 1, function(x) var(x[x < quantile(x, .9)]))
+	# Unlikely to ever use nb, keep for now...
+  if (is.null(geneTheta) & model == 'nb') {
+    Var <- apply(scaleData, 1, function(x) var(x[x < quantile(x, .9)]))
     Var[is.na(Var)] <- sample(Var[!is.na(Var) & Var > quantile(Var[Var>0], .2, na.rm=T)
                                   & Var < quantile(Var[Var>0], .5, na.rm=T)],
                               sum(is.na(Var)), replace=T)
     Theta <- (geneMeans^2) / (Var - geneMeans)
     Theta[which(Theta <= 0)] <- sample(Theta[Theta > 0 & Theta > quantile(Theta[Theta>0], .1,
-                                                                          na.rm=T) & Theta < quantile(Theta[Theta>0], .5, na.rm=T)],
+                                       na.rm=T) & Theta < quantile(Theta[Theta>0], .5, na.rm=T)],
                                        sum(Theta <= 0, na.rm=T), replace=T)
     geneTheta <- Theta
-  }
+  } 
   if (is.null(genes)) {
     genes <- rownames(sce)
   }
   if (is.null(captureEfficiency)) {
     captureEfficiency <- -1
   }
+	
   if (is.null(firstAmpEfficiency)) {
-    firstAmpEfficiency <- rnorm(sum(numCells), .90, .02)
+    firstAmpEfficiency <- Rfast::Rnorm(sum(numCells), .95, .02)
   }
   if (is.null(secondAmpEfficiency)) {
     if (protocol == "C1")
-      secondAmpEfficiency <- rnorm(sum(numCells), .90, .02)
+      secondAmpEfficiency <- Rfast::Rnorm(sum(numCells), .95, .02)
     else
-      secondAmpEfficiency <- 0.9
+      secondAmpEfficiency <- 0.95
   }
   if (is.null(tagEfficiency)) {
-    tagEfficiency <- runif(sum(numCells), .95, 1)
+    tagEfficiency <- Rfast::Rnorm(sum(numCells), .95, .02)
   }
   
   if(is.null(degree)) {
-  	degree <- c()
-    mycomb <- combn(sum(numCells), 2)
-	
+    degree <- c()
+    mycomb <- Rfast::comb_n(sum(numCells), 2)
+    
     lib.size <- colSums(counts(sce))
-  	if (sum(numCells) != length(lib.size)) {
-  		lib.size <- sample(lib.size, sum(numCells), replace=TRUE)
-  	}
-	
-    allComb <- sapply(lib.size, function(x) apply(mycomb,2,function(y) x / lib.size[y[2]]))
-	
+    if (sum(numCells) != length(lib.size)) {
+      lib.size <- sample(lib.size, sum(numCells), replace=TRUE)
+    }
+    
+    if (sum(numCells) > 100) {
+      mycomb <- mycomb[,sample(1:ncol(mycomb), 100)]
+    }
+    
+    # allComb <- sapply(lib.size, function(x) apply(mycomb,2,function(y) x / lib.size[y[2]]))
+    allComb <- apply(mycomb,2,function(y) lib.size[y[1]] / lib.size[y[2]])
+    
     degree[1] <- quantile(allComb, .05)	
-	degree[2] <- quantile(allComb, .95)
+    degree[2] <- quantile(allComb, .95)
   }
   if (is.null(totalSD)) {
     totalSD <- sum(counts(sce))
   }
   
   if (protocol == "10X") {
-   useUMI <- TRUE
+    useUMI <- TRUE
   }
   
   return(new("ScaffoldParams",
@@ -120,8 +131,10 @@ estimateScaffoldParameters <- function(sce,
              numGenes = numGenes,
              geneMeans = geneMeans,
              geneTheta = geneTheta,
+						 totalTranscripts = totalTranscripts,
              genes = genes,
              captureEfficiency = captureEfficiency,
+						 efficiencyRT = efficiencyRT,
              typeOfAmp = typeOfAmp,
              numFirstAmpCycles = numFirstAmpCycles,
              numSecondAmpCycles = numSecondAmpCycles,
@@ -132,6 +145,41 @@ estimateScaffoldParameters <- function(sce,
              percentRange = percentRange,
              protocol = protocol,
              totalSD = totalSD,
-			 useUMI = useUMI,
-			 sepPops = sepPops))
+             useUMI = useUMI,
+						 model = model,
+             usePops = usePops))
 }
+
+
+
+# Estimate capture efficiency for simulated data
+# method to estimate parameter for capture efficiency
+#' @importFrom stats dbinom optimize
+#' @export
+estimateCaptureEff <- function(Data, compareData) {
+
+  gdetectRate <- rowSums(Data!=0) /ncol(Data)
+
+  Ptest <- rowMeans(Data) / nrow(Data)
+  try1 <- split(Rfast::Sort(Ptest), cut(seq_along(Rfast::Sort(Ptest)), 10, labels = FALSE))
+  randG <- do.call(c,lapply(1:10, function(x) sample(names(try1[[x]]), 100)))
+  minFunc <- function(inGuess){
+     tt <- dbinom(0, round(inGuess*nrow(Data)), Ptest[randG], log = TRUE)
+     avg.detection.raw = mean(colMeans(compareData!=0))
+     X = abs((1-mean(exp(tt), na.rm=T)) - avg.detection.raw)
+     return(X)
+   }
+   simparm <- optimize(minFunc, lower=0, upper=1, tol=1e-10)$minimum
+	 getsd <- colMeans(compareData!=0)
+	 getsd <- mad(getsd, low=TRUE, constant = 1)
+   simparm <- c(simparm, getsd)
+   print(simparm) # remove this print later
+
+   esteff <- rnorm(ncol(Data), simparm[1], simparm[2])
+   return(esteff)
+
+}
+
+
+
+

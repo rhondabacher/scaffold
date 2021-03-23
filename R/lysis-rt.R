@@ -1,19 +1,22 @@
-                                        # this is step 2
+# this is step 2
 #' @importFrom wrswoR sample_int_rej
 #' @export
 captureStep <- function(Data, captureEffCell = NULL, captureEffGene = NULL, 
-							rtEffCell = NULL, rtEffGene = NULL, useUMI = FALSE){
+                        rtEffCell = NULL, rtEffGene = NULL, useUMI = FALSE){
   
-  if (is.null(captureEffGene) == TRUE) {
+  if (is.null(captureEffGene)) {
     captureEffGene <- Rfast::rep_col(1, nrow(Data))
+    captureEffGene <- as.vector(captureEffGene)
+    names(captureEffGene) <- rownames(Data)
   }
   captureEffGene <- captureEffGene / sum(captureEffGene)
-  names(captureEffGene) <- rownames(Data)
-  if (is.null(rtEffGene) == TRUE) {
+  
+  if (!is.null(rtEffCell) & is.null(rtEffGene)) {
     rtEffGene <- Rfast::rep_col(1, nrow(Data))
+    rtEffGene <- as.vector(rtEffGene)
+    names(rtEffGene) <- rownames(Data)
+		rtEffGene <- rtEffGene / sum(rtEffGene)
   }
-  rtEffGene <- rtEffGene / sum(rtEffGene)
-  names(rtEffGene) <- rownames(Data)
   
   Genes <- rownames(Data)
   

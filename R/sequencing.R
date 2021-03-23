@@ -1,13 +1,14 @@
 #' @export
 sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
-                         efficiencyPCR, roundsPCR, efficiencyTag=NULL,
-						 genes=scaffoldParams@genes, useUMI=FALSE) {
+                          efficiencyPCR, roundsPCR, efficiencyTag=NULL,
+						              genes=scaffoldParams@genes, useUMI=FALSE) {
 
 
+   numCells <- length(amplifiedMolecules)
 	 amplifiedMoleculesQuant <- quantCells(amplifiedMolecules, pcntRange=pcntRange)
 	 amplifiedMolecules <- NULL
 
-	 taggedMolecules <- lapply(1:length(amplifiedMoleculesQuant), function(x) {
+	 taggedMolecules <- lapply(1:numCells, function(x) {
 	   geneProbs_all <- Rfast::Log(amplifiedMoleculesQuant[[x]] / sum(as.numeric(amplifiedMoleculesQuant[[x]])))
 		 names(geneProbs_all) <- names(amplifiedMoleculesQuant[[x]])
 	   totalT <- round(efficiencyTag[x]*sum(as.numeric(amplifiedMoleculesQuant[[x]])))
@@ -18,13 +19,13 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 	 })
 	 amplifiedMoleculesQuant <- NULL
 
-	 taggedMolecules <- lapply(taggedMolecules, function(x) x * 10)
+	 taggedMolecules <- lapply(taggedMolecules, function(x) x * 2) # based on C1 guide.
 
 	 quantifiedMolecules <- amplifyStep(taggedMolecules, genes=genes, efficiencyPCR, roundsPCR, protocol = "C1")
 	 taggedMolecules <- NULL
 
 
-	 amplifiedMoleculesQuant_all_list <- lapply(1:length(quantifiedMolecules), function(x) {
+	 amplifiedMoleculesQuant_all_list <- lapply(1:numCells, function(x) {
 	   y = quantifiedMolecules[[x]]
 	   names(y) <- paste0(names(quantifiedMolecules[[x]]),"__", x)
 	   return(y)
@@ -35,48 +36,63 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 	 amplifiedMoleculesQuant_all_list <- NULL
 
 	 geneProbs_all <- Rfast::Log(amplifiedMoleculesQuant_all / sum(as.numeric(amplifiedMoleculesQuant_all)))
-
+	 names(geneProbs_all) <- names(amplifiedMoleculesQuant_all)
+	 
 	 counts <- try(rmultinom(n=1, size=totalSD, prob=exp(geneProbs_all)), silent=T)
-
+	
 	 count_tab <- NULL
 	 umi_tab <- NULL
 	 
+	 print("Beginning formatting output...")
 	 
-   cnt_split <- data.frame(do.call(rbind, strsplit(rownames(counts), split="__")), Count = counts[,1])
+	 library(data.table)
+   cnt_split <- data.table(do.call(rbind, strsplit(rownames(counts), split="__", fixed=TRUE)), Count = counts[,1])
+   
+   print(paste0("Processing output for ",numCells ," cells."))
    colnames(cnt_split) <- c("Gene", "Cell", "Count")
+   cnt_split$Cell <- factor(cnt_split$Cell)
+   cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
    cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
+   
    my_tabs <- lapply(1:length(cnt_split_cell), function(x) {
 			   X <- cnt_split_cell[[x]]
 			   X$ugenes <- gsub("@.*","",X$Gene)  
-			   count_tab_temp <-  tapply(X$Count, X$ugenes, sum)
-			   zeroG <- setdiff(genes, names(count_tab_temp))
-			   zeroExpr <- rep(0, length(zeroG)); names(zeroExpr) <- zeroG
-			   count_tab_temp <- c(count_tab_temp, zeroExpr)
-			   count_tab <- count_tab_temp[sort(names(count_tab_temp))]
-
+			   X <- X[order(X$ugenes),]
+			   
+			   count_tab_tempvec <-  iotools::ctapply(X$Count, X$ugenes, sum)
+			   count_tab_temp <- matrix(count_tab_tempvec)
+			   rownames(count_tab_temp) <-  names(count_tab_tempvec)
+			   
+			   zeroG <- setdiff(genes, rownames(count_tab_temp))
+			   zeroExpr <- Rfast::rep_row(0, length(zeroG)); rownames(zeroExpr) <- zeroG
+			   count_tab_temp <- rbind(count_tab_temp, zeroExpr)
+			   count_tab <- count_tab_temp[Rfast::Sort(rownames(count_tab_temp)),]
+			   
 				 if (useUMI==TRUE) {
 				     x_nonzero <- subset(X, Count > 0)
-				     umi_tab_temp <- table(x_nonzero$ugenes)
-				     zeroG <- setdiff(genes, names(umi_tab_temp))
-				     zeroExpr <- Rfast::rep_col(0, length(zeroG)); names(zeroExpr) <- zeroG
+				     umi_tab_temptab <- table(x_nonzero$ugenes)
+				     umi_tab_temp <- matrix(umi_tab_temptab)
+				     rownames(umi_tab_temp) <- names(umi_tab_temptab)
+				     zeroG <- setdiff(genes, rownames(umi_tab_temp))
+				     zeroExpr <- Rfast::rep_row(0, length(zeroG)); rownames(zeroExpr) <- zeroG
 
-				     umi_tab_temp <- c(umi_tab_temp, zeroExpr)
-				     umi_tab <- umi_tab_temp[Rfast::Sort(names(umi_tab_temp))]
+				     umi_tab_temp <- rbind(umi_tab_temp, zeroExpr)
+				     umi_tab <- umi_tab_temp[Rfast::Sort(rownames(umi_tab_temp)),]
 					 } else {umi_tab <- NULL}
 				 
 				 return(list(count_tab, umi_tab))
 	 })
 		 
 	   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
-	   colnames(count_tab) <- paste0("Cell_", 1:length(efficiencyPCR))
+	   colnames(count_tab) <- paste0("Cell_", 1:numCells)
 	   rownames(count_tab) <- genes
 	   
 		 if (useUMI==TRUE) {
 			 umi_tab <- do.call(cbind, sapply(my_tabs, function(x) x[2]))
-			 colnames(umi_tab) <- paste0("Cell_", 1:length(efficiencyPCR))
+			 colnames(umi_tab) <- paste0("Cell_", 1:numCells)
 			 rownames(umi_tab) <- genes
 		 }
-
+	  
 	 return(list(counts = count_tab, umi_counts = umi_tab))
 }
 
@@ -84,37 +100,41 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 #' @export
 sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
                             efficiencyPCR, roundsPCR=12, efficiencyTag=NULL,
-							genes, useUMI=TRUE)
+                            genes, useUMI=TRUE)
 {
   print("Rearranging 10x data")
-
+  
   label_capturedMolecules <- lapply(1:length(capturedMolecules), function(x) paste0(capturedMolecules[[x]], "__", x))
-
+  
   tab_capturedMolecules <- lapply(label_capturedMolecules, function(y) {
-    easyY <- rep(1, length(y))
-    names(easyY) <- y
-    return(easyY)
+    easyY <- Rfast::rep_row(1, length(y))
+    rownames(easyY) <- y
+    return(list(easyY, namesy))
   })
   
   # Now everything is combined and PCR amp:
-  allCounts <- unlist(tab_capturedMolecules)
-
+  longVectorCounts <- unlist(tab_capturedMolecules)
+  names(longVectorCounts) <- do.call(c, label_capturedMolecules)
+  
   amplifiedMolecules <- amplifyStep(longVectorCounts, genes=genes, efficiencyPCR, roundsPCR, protocol = "10X")
   
   # Now a fragmentation step happens:
   geneProbs_all <- Rfast::Log(amplifiedMolecules / sum(amplifiedMolecules))
+  names(geneProbs_all) <- names(amplifiedMolecules)
   totalT <- round(efficiencyTag*sum(amplifiedMolecules))
+  if(totalT > .Machine$integer.max) totalT <- .Machine$integer.max
   tagdM <- try(rmultinom(n=1, size=totalT, prob=exp(geneProbs_all)), silent=T)
   fragments <- as.vector(tagdM)
   names(fragments) <- rownames(tagdM)
-
+  
   # Now we sequence:
   geneProbs_all <- Rfast::Log(fragments / sum(fragments))
+  names(geneProbs_all) <- names(fragments)
   counts <- try(rmultinom(n=1, size=totalSD, prob=exp(geneProbs_all)), silent=T)
   
   ## Split matrix into nicer output:
-
-  cnt_split <- data.frame(do.call(rbind, strsplit(rownames(counts), split="__")), Count = counts[,1])
+  
+  cnt_split <- data.frame(do.call(rbind, strsplit(rownames(counts), split="__", fixed=TRUE)), Count = counts[,1])
   colnames(cnt_split) <- c("Gene", "Cell", "Count")
   cnt_split$Cell <- factor(cnt_split$Cell)
   cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
@@ -122,29 +142,33 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
   my_tabs <- lapply(1:length(cnt_split_cell), function(x) {
     X <- cnt_split_cell[[x]]
     X$ugenes <- gsub("@.*","",X$Gene)  
-    count_tab_temp <-  tapply(X$Count, X$ugenes, sum)
-    zeroG <- setdiff(genes, names(count_tab_temp))
-    zeroExpr <- rep(0, length(zeroG)); names(zeroExpr) <- zeroG
-    count_tab_temp <- c(count_tab_temp, zeroExpr)
-    count_tab <- count_tab_temp[sort(names(count_tab_temp))]
-
+    X <- X[order(X$ugenes),]
+    count_tab_tempvec <-  iotools::ctapply(X$Count, X$ugenes, sum)
+    count_tab_temp <- matrix(count_tab_tempvec)
+    rownames(count_tab_temp) <-  names(count_tab_tempvec)
+    
+    zeroExpr <- Rfast::rep_row(0, length(zeroG)); rownames(zeroExpr) <- zeroG
+    count_tab_temp <- rbind(count_tab_temp, zeroExpr)
+    count_tab <- count_tab_temp[Rfast::Sort(rownames(count_tab_temp)),]
+    
     x_nonzero <- subset(X, Count > 0)
     umi_tab_temp <- table(x_nonzero$ugenes)
-    zeroG <- setdiff(genes, names(umi_tab_temp))
-    zeroExpr <- rep(0, length(zeroG)); names(zeroExpr) <- zeroG
-
-    umi_tab_temp <- c(umi_tab_temp, zeroExpr)
-    umi_tab <- umi_tab_temp[sort(names(umi_tab_temp))]
+    umi_tab_temp <- matrix(umi_tab_temptab)
+    rownames(umi_tab_temp) <- names(umi_tab_temptab)
+    zeroG <- setdiff(genes, rownames(umi_tab_temp))
+    zeroExpr <- Rfast::rep_row(0, length(zeroG)); rownames(zeroExpr) <- zeroG
+    
+    umi_tab_temp <- rbind(umi_tab_temp, zeroExpr)
+    umi_tab <- umi_tab_temp[Rfast::Sort(rownames(umi_tab_temp)),]
     return(list(count_tab, umi_tab))
   })
-
+  
   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
-  colnames(count_tab) <- paste0("Cell_", 1:length(capturedMolecules))
+  colnames(count_tab) <- paste0("Cell_", 1:numCells)
   rownames(count_tab) <- genes
   
   umi_tab <- do.call(cbind, sapply(my_tabs, function(x) x[2]))
-  colnames(umi_tab) <- paste0("Cell_", 1:length(capturedMolecules))
-	rownames(umi_tab) <- genes
- return(list(counts = count_tab, umi_counts = umi_tab))
+  colnames(umi_tab) <- paste0("Cell_", 1:numCells)
+  rownames(umi_tab) <- genes
+  return(list(counts = count_tab, umi_counts = umi_tab))
 }
-

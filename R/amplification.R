@@ -8,6 +8,7 @@ preamplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, type
 		X <- Rfast::Table(capturedMolecules[[x]])}
 	else if (useUMI == TRUE) {
 		X <- Rfast::rep_col(1, length(capturedMolecules[[x]]))
+		X <- as.vector(X)
 		names(X) <- capturedMolecules[[x]]
 	}
 	
@@ -57,7 +58,7 @@ quantCells <- function(amplifiedMolecules, pcntRange) {
   totalM <- round(sapply(amplifiedMolecules, function(x) sum(x)))
   ## Use a negative value here to indicate diluting ALL by same factor...no equalization.
   if (pcntRange < 0) {
-    totalM <- totalM / abs(pcntRange)
+    totalM <- totalM * rnorm(length(totalM), .95, sd=.01)
   } else {
     target <- median(c(min(totalM), quantile(totalM, pcntRange)))
     for(i in 1:length(amplifiedMolecules)) {
@@ -71,12 +72,12 @@ quantCells <- function(amplifiedMolecules, pcntRange) {
   }
 
   inputRange <- totalM
-  if (any(inputRange >= 2147483647)) { # largest value in R, just rescaling.
-    SCALEALL <- max(inputRange) / 2147483647
+  if (any(inputRange >= .Machine$integer.max)) { # largest value in R, just rescaling.
+    SCALEALL <- max(inputRange) / .Machine$integer.max
     inputRange <- inputRange/SCALEALL
   }
 
-  geneProbs <- lapply(amplifiedMolecules, function(x) log(x) - log(sum(x)))
+  geneProbs <- lapply(amplifiedMolecules, function(x) log(x/sum(x)))
 
   countsList <- lapply(1:length(geneProbs), function(x) {
     geneProbsUse = geneProbs[[x]]
