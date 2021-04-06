@@ -9,15 +9,16 @@ License: GPL (>= 2)
 LazyData: true
 Encoding: UTF-8
 Imports:
-  wrswoR,
-  multinomRob,
-  quantreg,
-  SCnorm,
-  parallel,
-  MASS,
-  SingleCellExperiment,
-  yarrr,
-  methods
+    wrswoR,
+    multinomRob,
+    quantreg,
+    SCnorm,
+    parallel,
+    MASS,
+    SingleCellExperiment,
+    yarrr,
+    methods,
+    Rcpp
 URL: https://github.com/rhondabacher/scaffold
 BugReports: https://github.com/rhondabacher/scaffold/issues
 RoxygenNote: 7.1.1
@@ -25,3 +26,5 @@ Depends:
     R (>= 2.10)
 Suggests: BiocStyle, knitr, rmarkdown
 VignetteBuilder: knitr
+LinkingTo: 
+    Rcpp
