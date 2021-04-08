@@ -25,7 +25,9 @@ setClass("ScaffoldParams",
                         totalSD = "numeric",
 												useUMI = "logical",
 												model = "character",
-												usePops = "listOrNULL"))
+												usePops = "listOrNULL",
+												useDynamic = "logical",
+												propDynamic = "numeric"))
 
 #' @importFrom utils head
 setMethod("show", signature(object = "ScaffoldParams"),

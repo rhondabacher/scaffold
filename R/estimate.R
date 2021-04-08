@@ -45,13 +45,12 @@ estimateScaffoldParameters <- function(sce,
                                        totalSD = NULL,
                                        useUMI = FALSE,
                                        model = 'p',
-                                       usePops = NULL)
+                                       usePops = NULL,
+																			 useDynamic = FALSE,
+																			 propDynamic = 0)
 {
   if(is.null(totalTranscripts)) totalTranscripts <- 300000
-  # if(is.null(totalTranscripts) & useUMI == FALSE) totalTranscripts <- 300000
-  
-  # if(is.null(totalTranscripts) & useUMI == TRUE) totalTranscripts <- 10000	
-  
+
   scaleFactor <- colSums(counts(sce)) / totalTranscripts
   scaleData <- t(t(counts(sce)) / scaleFactor)
   
@@ -147,7 +146,9 @@ estimateScaffoldParameters <- function(sce,
              totalSD = totalSD,
              useUMI = useUMI,
 						 model = model,
-             usePops = usePops))
+             usePops = usePops,
+						 useDynamic = useDynamic,
+						 propDynamic = propDynamic))
 }
 
 

@@ -12,34 +12,38 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
 	numCells <- sum(scaffoldParams@numCells)
 	cellPopulation <- rep(1:length(scaffoldParams@numCells), scaffoldParams@numCells)
 	
+	if (scaffoldParams@useDynamic == TRUE) {
+		initialCounts <- generateDynamicGeneCounts(numCells = numCells, 
+																							mu = scaffoldParams@geneMeans, 
+																							propDynamic = scaffoldParams@propDynamic)
+	rownames(initialCounts) <- scaffoldParams@genes
+	} else {
 	if (!is.null(scaffoldParams@usePops[[1]])) {
-	  initialCounts <- generateGeneCounts(numCells = numCells,
-	                                      mu = scaffoldParams@geneMeans,
-	                                      theta = scaffoldParams@geneTheta,
-	                                      type = scaffoldParams@model,
-	                                      degree = scaffoldParams@degree)
-	  rownames(initialCounts) <- scaffoldParams@genes
+		cellSplit <- split(1:numCells, f=cellPopulation)
     
-	  cellSplit <- split(1:numCells, f=cellPopulation)
-  
-	  temp_counts <- lapply(2:length(cellSplit), function(x) {
+		    allCounts <- lapply(1:length(cellSplit), function(x){
       
-	       pop_temp <- data.matrix(initialCounts[,cellSplit[[x]]])
-	       numSamp <- nrow(initialCounts) * scaffoldParams@usePops$propGenes[(x-1)]
-	       selectGenes <- sample(1:nrow(initialCounts), numSamp)			
-	       fc_genes <- abs(rnorm(length(selectGenes), mean = scaffoldParams@usePops$fc[(x-1)], sd=.4))
-	       flipfc <- sample(1:length(fc_genes), length(fc_genes) / 2)
-	       fc_genes[flipfc] <- 1/ fc_genes[flipfc]
-	       fc_mat <- sapply(fc_genes, function(y) {
-	         abs(rnorm(ncol(pop_temp), mean = y, sd = .1)) #so not every value multipled exactly the same
-	       })
-	       pop_temp[selectGenes,] <- pop_temp[selectGenes,] * t(fc_mat)
+		      means <- scaffoldParams@geneMeans
+		      numSamp <- length(means) * scaffoldParams@usePops$propGenes[(x)]
+		      if (numSamp > 0) {
+		        selectGenes <- sample(1:length(means), numSamp)
+		        fc_genes <- abs(rnorm(length(selectGenes), mean = scaffoldParams@usePops$fc[(x)], sd=.4))
+		        flipfc <- sample(1:length(fc_genes), length(fc_genes) / 2)
+		        fc_genes[flipfc] <- 1/ fc_genes[flipfc]
       
-	       return(pop_temp)
-	     })
-	     # Put back together
-	     initialCounts <- cbind(initialCounts[,cellSplit[[1]]], do.call(cbind, temp_counts))
-  
+		        means[selectGenes] <- means[selectGenes] * fc_genes
+		      }
+		      generateCnts <- generateGeneCounts(numCells = scaffoldParams@numCells[x],
+		                                          mu = means,
+		                                          theta = scaffoldParams@geneTheta,
+		                                          type = scaffoldParams@model,
+		                                          degree = scaffoldParams@degree)
+		      rownames(generateCnts) <- scaffoldParams@genes
+		      return(generateCnts)
+		    })
+    
+		    initialCounts <- do.call(cbind, allCounts)
+
   
 	} else if(is.null(scaffoldParams@usePops[[1]])) {
 	  if (is.null(inputInitial)) {
@@ -53,6 +57,8 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
 	    initialCounts = inputInitial
 	  }
 	}
+}
+	
   
 
  
