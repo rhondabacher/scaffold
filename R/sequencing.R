@@ -99,17 +99,17 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 # under construction
 #' @export
 sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
-                            efficiencyPCR, roundsPCR=12, efficiencyTag=NULL,
+                            efficiencyPCR, roundsPCR=12, efficiencyTag,
                             genes, useUMI=TRUE)
 {
   print("Rearranging 10x data")
-  
+  numCells <- length(capturedMolecules)
   label_capturedMolecules <- lapply(1:length(capturedMolecules), function(x) paste0(capturedMolecules[[x]], "__", x))
   
   tab_capturedMolecules <- lapply(label_capturedMolecules, function(y) {
     easyY <- Rfast::rep_row(1, length(y))
     rownames(easyY) <- y
-    return(list(easyY, namesy))
+    return(easyY)
   })
   
   # Now everything is combined and PCR amp:
@@ -139,29 +139,30 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
   cnt_split$Cell <- factor(cnt_split$Cell)
   cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
   cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
-  my_tabs <- lapply(1:length(cnt_split_cell), function(x) {
-    X <- cnt_split_cell[[x]]
-    X$ugenes <- gsub("@.*","",X$Gene)  
-    X <- X[order(X$ugenes),]
-    count_tab_tempvec <-  iotools::ctapply(X$Count, X$ugenes, sum)
-    count_tab_temp <- matrix(count_tab_tempvec)
-    rownames(count_tab_temp) <-  names(count_tab_tempvec)
-    
-    zeroExpr <- Rfast::rep_row(0, length(zeroG)); rownames(zeroExpr) <- zeroG
-    count_tab_temp <- rbind(count_tab_temp, zeroExpr)
-    count_tab <- count_tab_temp[Rfast::Sort(rownames(count_tab_temp)),]
-    
-    x_nonzero <- subset(X, Count > 0)
-    umi_tab_temp <- table(x_nonzero$ugenes)
-    umi_tab_temp <- matrix(umi_tab_temptab)
-    rownames(umi_tab_temp) <- names(umi_tab_temptab)
-    zeroG <- setdiff(genes, rownames(umi_tab_temp))
-    zeroExpr <- Rfast::rep_row(0, length(zeroG)); rownames(zeroExpr) <- zeroG
-    
-    umi_tab_temp <- rbind(umi_tab_temp, zeroExpr)
-    umi_tab <- umi_tab_temp[Rfast::Sort(rownames(umi_tab_temp)),]
-    return(list(count_tab, umi_tab))
-  })
+	my_tabs <- lapply(1:length(cnt_split_cell), function(x) {
+	  X <- cnt_split_cell[[x]]
+	  X$ugenes <- gsub("@.*","",X$Gene)  
+	  X <- X[order(X$ugenes),]
+	  count_tab_tempvec <-  iotools::ctapply(X$Count, X$ugenes, sum)
+	  count_tab_temp <- matrix(count_tab_tempvec)
+	  rownames(count_tab_temp) <-  names(count_tab_tempvec)
+  
+	  zeroG <- setdiff(genes, rownames(count_tab_temp))
+	  zeroExpr <- Rfast::rep_row(0, length(zeroG)); rownames(zeroExpr) <- zeroG
+	  count_tab_temp <- rbind(count_tab_temp, zeroExpr)
+	  count_tab <- count_tab_temp[Rfast::Sort(rownames(count_tab_temp)),]
+  
+	  x_nonzero <- subset(X, Count > 0)
+	  umi_tab_temptab <- table(x_nonzero$ugenes)
+	  umi_tab_temp <- matrix(umi_tab_temptab)
+	  rownames(umi_tab_temp) <- names(umi_tab_temptab)
+	  zeroG <- setdiff(genes, rownames(umi_tab_temp))
+	  zeroExpr <- Rfast::rep_row(0, length(zeroG)); rownames(zeroExpr) <- zeroG
+  
+	  umi_tab_temp <- rbind(umi_tab_temp, zeroExpr)
+	  umi_tab <- umi_tab_temp[Rfast::Sort(rownames(umi_tab_temp)),]
+	  return(list(count_tab, umi_tab))
+	})
   
   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
   colnames(count_tab) <- paste0("Cell_", 1:numCells)

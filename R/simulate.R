@@ -119,6 +119,7 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
                                 efficiencyPCR = scaffoldParams@secondAmpEfficiency,
                                 roundsPCR = scaffoldParams@numSecondAmpCycles,
                                 genes = scaffoldParams@genes,
+																efficiencyTag = scaffoldParams@tagEfficiency,
 																useUMI = scaffoldParams@useUMI)
     print("finished sequencing")
     SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
