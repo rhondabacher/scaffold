@@ -66,7 +66,9 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
   if (scaffoldParams@captureEfficiency[1] == -1) {
     print("about to estimate capture efficiency")
     capEfficiency <- estimateCaptureEff(Data = initialCounts,
-                                       compareData = counts(originalSCE))
+                                       compareData = counts(originalSCE),
+                                       protocol = scaffoldParams@protocol,
+                                       useUMI = scaffoldParams@useUMI)
 
   } else {
    capEfficiency <- scaffoldParams@captureEfficiency

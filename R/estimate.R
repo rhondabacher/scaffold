@@ -160,7 +160,7 @@ estimateScaffoldParameters <- function(sce,
 # method to estimate parameter for capture efficiency
 #' @importFrom stats dbinom optimize
 #' @export
-estimateCaptureEff <- function(Data, compareData, protocol) {
+estimateCaptureEff <- function(Data, compareData, protocol, useUMI) {
 
   gdetectRate <- rowSums(Data!=0) /ncol(Data)
 
@@ -168,9 +168,23 @@ estimateCaptureEff <- function(Data, compareData, protocol) {
   try1 <- split(Rfast::Sort(Ptest), cut(seq_along(Rfast::Sort(Ptest)), 10, labels = FALSE))
   randG <- do.call(c,lapply(1:10, function(x) sample(names(try1[[x]]), 100)))
 
-   if (protocol=="10X" | useUMI ==TRUE) {
-		 simparm <- optimize(minFuncUMI, lower=0, upper=1, tol=1e-10)$minimum
-	 } else if (protocol=="C1") {simparm <- optimize(minFuncC1, lower=0, upper=1, tol=1e-10)$minimum}
+   if (protocol=="10X" | useUMI == TRUE) {
+       minFuncUMI <- function(inGuess){
+         tt <- pbinom(1, round(inGuess*nrow(Data)), Ptest[randG], log = TRUE)
+         avg.detection.raw = mean(colMeans(compareData>0))
+         X = abs((1-mean(exp(tt), na.rm=T)) - avg.detection.raw)
+         return(X)
+       }
+	  simparm <- optimize(minFuncUMI, lower=0, upper=1, tol=1e-10)$minimum
+	 } else if (protocol=="C1") {
+         minFuncC1 <- function(inGuess){
+            tt <- dbinom(0, round(inGuess*nrow(Data)), Ptest[randG], log = TRUE)
+            avg.detection.raw = mean(colMeans(compareData>0))
+            X = abs((1-mean(exp(tt), na.rm=T)) - avg.detection.raw)
+            return(X)
+          }
+         simparm <- optimize(minFuncC1, lower=0, upper=1, tol=1e-10)$minimum
+     }
 	 getsd <- colMeans(compareData!=0)
 	 getsd <- mad(getsd, low=TRUE, constant = 1)
    simparm <- c(simparm, getsd)
@@ -182,18 +196,5 @@ estimateCaptureEff <- function(Data, compareData, protocol) {
 }
 
 
-minFuncC1 <- function(inGuess){
-   tt <- dbinom(0, round(inGuess*nrow(Data)), Ptest[randG], log = TRUE)
-   avg.detection.raw = mean(colMeans(compareData>0))
-   X = abs((1-mean(exp(tt), na.rm=T)) - avg.detection.raw)
-   return(X)
- }
-
-minFuncUMI <- function(inGuess){
-  tt <- pbinom(1, round(inGuess*nrow(Data)), Ptest[randG], log = TRUE)
-  avg.detection.raw = mean(colMeans(compareData>0))
-  X = abs((1-mean(exp(tt), na.rm=T)) - avg.detection.raw)
-  return(X)
-}
 
 
