@@ -27,7 +27,7 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 
 	 amplifiedMoleculesQuant_all_list <- lapply(1:numCells, function(x) {
 	   y = quantifiedMolecules[[x]]
-	   names(y) <- paste0(names(quantifiedMolecules[[x]]),"__", x)
+	   names(y) <- stringi::stri_c(names(quantifiedMolecules[[x]]), x, sep="__")
 	   return(y)
 	 })
 	 quantifiedMolecules <- NULL
@@ -46,13 +46,13 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 	 print("Beginning formatting output...")
 	 
 	 library(data.table)
-   cnt_split <- data.table(do.call(rbind, strsplit(rownames(counts), split="__", fixed=TRUE)), Count = counts[,1])
-   
-   print(paste0("Processing output for ",numCells ," cells."))
-   colnames(cnt_split) <- c("Gene", "Cell", "Count")
-   cnt_split$Cell <- factor(cnt_split$Cell)
-   cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
-   cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
+	 cnt_split <- unlist(strsplit(rownames(counts), split="__", fixed=TRUE))
+	 cnt_split <- data.table(Gene = (cnt_split)[c(TRUE,FALSE)], Cell = (cnt_split)[c(FALSE,TRUE)], Count = counts[,1])
+
+	 print(paste0("Processing output for ",numCells ," cells."))
+	 cnt_split$Cell <- factor(cnt_split$Cell)
+	 cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
+	 cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
    
    my_tabs <- lapply(1:length(cnt_split_cell), function(x) {
 			   X <- cnt_split_cell[[x]]
@@ -84,12 +84,12 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 	 })
 		 
 	   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
-	   colnames(count_tab) <- paste0("Cell_", 1:numCells)
+	   colnames(count_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
 	   rownames(count_tab) <- genes
 	   
 		 if (useUMI==TRUE) {
 			 umi_tab <- do.call(cbind, sapply(my_tabs, function(x) x[2]))
-			 colnames(umi_tab) <- paste0("Cell_", 1:numCells)
+			 colnames(umi_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
 			 rownames(umi_tab) <- genes
 		 }
 	  
@@ -104,7 +104,7 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
 {
   print("Rearranging 10x data")
   numCells <- length(capturedMolecules)
-  label_capturedMolecules <- lapply(1:length(capturedMolecules), function(x) paste0(capturedMolecules[[x]], "__", x))
+  label_capturedMolecules <- lapply(1:length(capturedMolecules), function(x) stringi::stri_c(capturedMolecules[[x]], x, sep="__"))
   
   tab_capturedMolecules <- lapply(label_capturedMolecules, function(y) {
     easyY <- Rfast::rep_row(1, length(y))
@@ -118,6 +118,7 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
   
   amplifiedMolecules <- amplifyStep(longVectorCounts, genes=genes, efficiencyPCR, roundsPCR, protocol = "10X")
   
+	print("Beginning formatting output...")
   # Now a fragmentation step happens:
   geneProbs_all <- Rfast::Log(amplifiedMolecules / sum(amplifiedMolecules))
   names(geneProbs_all) <- names(amplifiedMolecules)
@@ -133,9 +134,9 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
   counts <- try(rmultinom(n=1, size=totalSD, prob=exp(geneProbs_all)), silent=T)
   
   ## Split matrix into nicer output:
-  
-  cnt_split <- data.frame(do.call(rbind, strsplit(rownames(counts), split="__", fixed=TRUE)), Count = counts[,1])
-  colnames(cnt_split) <- c("Gene", "Cell", "Count")
+  print(paste0("Processing output for ",numCells ," cells."))
+	cnt_split <- unlist(strsplit(rownames(counts), split="__", fixed=TRUE))
+	cnt_split <- data.table(Gene = (cnt_split)[c(TRUE,FALSE)], Cell = (cnt_split)[c(FALSE,TRUE)], Count = counts[,1])
   cnt_split$Cell <- factor(cnt_split$Cell)
   cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
   cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
@@ -165,11 +166,11 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
 	})
   
   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
-  colnames(count_tab) <- paste0("Cell_", 1:numCells)
+  colnames(count_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
   rownames(count_tab) <- genes
   
   umi_tab <- do.call(cbind, sapply(my_tabs, function(x) x[2]))
-  colnames(umi_tab) <- paste0("Cell_", 1:numCells)
+  colnames(umi_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
   rownames(umi_tab) <- genes
   return(list(counts = count_tab, umi_counts = umi_tab))
 }
