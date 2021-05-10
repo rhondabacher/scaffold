@@ -23,6 +23,7 @@ setClass("ScaffoldParams",
                         percentRange = "numeric",
                         protocol = "character",
                         totalSD = "numeric",
+                        fromUMI = "logical",
 												useUMI = "logical",
 												model = "character",
 												usePops = "listOrNULL",
@@ -50,6 +51,7 @@ setMethod("show", signature(object = "ScaffoldParams"),
             cat("degree:", object@degree, "\n")
             cat("percentRange:", object@percentRange, "\n")
             cat("totalSD:", object@totalSD, "\n")
+            cat("fromUMI:", object@fromUMI, "\n")
 						cat("useUMI:", object@useUMI, "\n")
 						cat("model:", object@model, "\n")
 						print(paste0("usePops:", head(object@usePops), "\n"))

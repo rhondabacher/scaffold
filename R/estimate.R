@@ -30,9 +30,9 @@ estimateScaffoldParameters <- function(sce,
                                        geneTheta = NULL,
                                        totalTranscripts = NULL,
                                        genes = NULL,
-																			 # geneEfficiency = NULL,
+									# geneEfficiency = NULL,
                                        captureEfficiency = NULL,
-																			 efficiencyRT = NULL,
+									efficiencyRT = NULL,
                                        typeOfAmp = "PCR",
                                        numFirstAmpCycles = 18,
                                        numSecondAmpCycles = 12,
@@ -43,11 +43,12 @@ estimateScaffoldParameters <- function(sce,
                                        percentRange = -1,
                                        protocol = "C1",
                                        totalSD = NULL,
+                                       fromUMI = FALSE,
                                        useUMI = FALSE,
                                        model = 'p',
                                        usePops = NULL,
-																			 useDynamic = FALSE,
-																			 propDynamic = 0)
+									useDynamic = FALSE,
+									propDynamic = 0)
 {
   if(is.null(totalTranscripts)) totalTranscripts <- 300000
 
@@ -148,6 +149,7 @@ estimateScaffoldParameters <- function(sce,
              protocol = protocol,
              totalSD = totalSD,
              useUMI = useUMI,
+             fromUMI = fromUMI,
 						 model = model,
              usePops = usePops,
 						 useDynamic = useDynamic,
@@ -160,7 +162,7 @@ estimateScaffoldParameters <- function(sce,
 # method to estimate parameter for capture efficiency
 #' @importFrom stats dbinom optimize
 #' @export
-estimateCaptureEff <- function(Data, compareData, protocol, useUMI) {
+estimateCaptureEff <- function(Data, compareData, protocol, fromUMI) {
 
   gdetectRate <- rowSums(Data!=0) /ncol(Data)
 
@@ -168,7 +170,7 @@ estimateCaptureEff <- function(Data, compareData, protocol, useUMI) {
   try1 <- split(Rfast::Sort(Ptest), cut(seq_along(Rfast::Sort(Ptest)), 10, labels = FALSE))
   randG <- do.call(c,lapply(1:10, function(x) sample(names(try1[[x]]), 100)))
 
-   if (protocol=="10X" | useUMI == TRUE) {
+   if (protocol=="10X" | fromUMI == TRUE) {
        minFuncUMI <- function(inGuess){
          tt <- pbinom(1, round(inGuess*nrow(Data)), Ptest[randG], log = TRUE)
          avg.detection.raw = mean(colMeans(compareData>0))
