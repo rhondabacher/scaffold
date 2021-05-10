@@ -192,7 +192,7 @@ estimateCaptureEff <- function(Data, compareData, protocol, fromUMI) {
    simparm <- c(simparm, getsd)
    print(simparm) # remove this print later
 
-   esteff <- rnorm(ncol(Data), simparm[1], simparm[2])
+   esteff <- abs(rnorm(ncol(Data), simparm[1], simparm[2]))
    return(esteff)
 
 }
