@@ -62,7 +62,7 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 
      library(foreach)
 
-     my_tabs <- foreach(i = rows_along(ind.block)) %dopar% {
+     my_tabs <- foreach(i = bigstatsr::rows_along(ind.block)) %dopar% {
        vals <- bigstatsr:::seq2(ind.block[i, ])
        lapply(vals, function(x) {
                X <- cnt_split_cell[[x]]
@@ -159,7 +159,7 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
 
   library(foreach)
 
-  my_tabs <- foreach(i = rows_along(ind.block)) %dopar% {
+  my_tabs <- foreach(i = bigstatsr::rows_along(ind.block)) %dopar% {
     vals <- bigstatsr:::seq2(ind.block[i, ])
     lapply(vals, function(x) {
       X <- cnt_split_cell[[x]]
