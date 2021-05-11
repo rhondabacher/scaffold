@@ -1,7 +1,9 @@
 #' @export
 sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
                           efficiencyPCR, roundsPCR, efficiencyTag=NULL,
-						              genes=scaffoldParams@genes, useUMI=FALSE) {
+						              genes=scaffoldParams@genes, 
+                                      useUMI=FALSE,
+                                      cores=1) {
 
 
    numCells <- length(amplifiedMolecules)
@@ -54,8 +56,16 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 	 cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
 	 cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
    
-   my_tabs <- lapply(1:length(cnt_split_cell), function(x) {
-			   X <- cnt_split_cell[[x]]
+     cl <- parallel::makeForkCluster(cores)
+     doParallel::registerDoParallel(cl)
+     ind.block <- bigstatsr:::CutBySize(length(cnt_split_cell), nb = cores)
+
+     library(foreach)
+
+     my_tabs <- foreach(i = rows_along(ind.block)) %dopar% {
+       vals <- bigstatsr:::seq2(ind.block[i, ])
+       lapply(vals, function(x) {
+               X <- cnt_split_cell[[x]]
 			   X$ugenes <- gsub("@.*","",X$Gene)  
 			   X <- X[order(X$ugenes),]
 			   
@@ -82,7 +92,9 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 				 
 				 return(list(count_tab, umi_tab))
 	 })
-		 
+	} 
+       my_tabs <- if(length(my_tabs) == cores) { do.call(c, my_tabs) }
+     
 	   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
 	   colnames(count_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
 	   rownames(count_tab) <- genes
@@ -140,8 +152,17 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
   cnt_split$Cell <- factor(cnt_split$Cell)
   cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
   cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
-	my_tabs <- lapply(1:length(cnt_split_cell), function(x) {
-	  X <- cnt_split_cell[[x]]
+	
+  cl <- parallel::makeForkCluster(cores)
+  doParallel::registerDoParallel(cl)
+  ind.block <- bigstatsr:::CutBySize(length(cnt_split_cell), nb = cores)
+
+  library(foreach)
+
+  my_tabs <- foreach(i = rows_along(ind.block)) %dopar% {
+    vals <- bigstatsr:::seq2(ind.block[i, ])
+    lapply(vals, function(x) {
+      X <- cnt_split_cell[[x]]
 	  X$ugenes <- gsub("@.*","",X$Gene)  
 	  X <- X[order(X$ugenes),]
 	  count_tab_tempvec <-  iotools::ctapply(X$Count, X$ugenes, sum)
@@ -164,7 +185,8 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
 	  umi_tab <- umi_tab_temp[Rfast::Sort(rownames(umi_tab_temp)),]
 	  return(list(count_tab, umi_tab))
 	})
-  
+  }
+  my_tabs <- if(length(my_tabs) == cores) { do.call(c, my_tabs) }
   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
   colnames(count_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
   rownames(count_tab) <- genes

@@ -6,7 +6,7 @@
 #'
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @export
-simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
+simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL, cores=1)
 {
 	
 	numCells <- sum(scaffoldParams@numCells)
@@ -14,8 +14,8 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
 	
 	if (scaffoldParams@useDynamic == TRUE) {
 		initialCounts <- generateDynamicGeneCounts(numCells = numCells, 
-																							mu = scaffoldParams@geneMeans, 
-																							propDynamic = scaffoldParams@propDynamic)
+												mu = scaffoldParams@geneMeans, 
+												propDynamic = scaffoldParams@propDynamic)
 	rownames(initialCounts) <- scaffoldParams@genes
 	} else {
 	if (!is.null(scaffoldParams@usePops[[1]])) {
@@ -103,7 +103,8 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
                                   roundsPCR = scaffoldParams@numSecondAmpCycles,
                                   efficiencyTag = scaffoldParams@tagEfficiency,
                                   genes = scaffoldParams@genes,
-                                  useUMI = scaffoldParams@useUMI)
+                                  useUMI = scaffoldParams@useUMI,
+                                  cores = cores)
     print("finished sequencing")
 		if(is.null(finalCounts$umi_counts)) {
 			finalCounts$umi_counts <- matrix(NA, nrow=nrow(finalCounts$counts), ncol=ncol(finalCounts$counts))
@@ -121,8 +122,9 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
                                 efficiencyPCR = scaffoldParams@secondAmpEfficiency,
                                 roundsPCR = scaffoldParams@numSecondAmpCycles,
                                 genes = scaffoldParams@genes,
-																efficiencyTag = scaffoldParams@tagEfficiency,
-																useUMI = scaffoldParams@useUMI)
+							    efficiencyTag = scaffoldParams@tagEfficiency,
+								useUMI = scaffoldParams@useUMI,
+                                cores = cores)
     print("finished sequencing")
     SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
        metadata = list(initialSimCounts = initialCounts),
