@@ -93,6 +93,7 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 				 return(list(count_tab, umi_tab))
 	 })
 	} 
+       parallel::stopCluster(cl)
        my_tabs <- if(length(my_tabs) == cores) { do.call(c, my_tabs) }
      
 	   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
@@ -186,6 +187,7 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
 	  return(list(count_tab, umi_tab))
 	})
   }
+  parallel::stopCluster(cl)
   my_tabs <- if(length(my_tabs) == cores) { do.call(c, my_tabs) }
   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
   colnames(count_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
