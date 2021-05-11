@@ -112,7 +112,7 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 #' @export
 sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
                             efficiencyPCR, roundsPCR=12, efficiencyTag,
-                            genes, useUMI=TRUE)
+                            genes, useUMI=TRUE, cores = 1)
 {
   print("Rearranging 10x data")
   numCells <- length(capturedMolecules)
