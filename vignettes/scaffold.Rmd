@@ -94,3 +94,10 @@ print(sessionInfo())
 ```
 
 # Frequently Asked Questions
+
+How long does scaffold take to run?
+
+On non-UMI data simulating 100 cells takes around 13 seconds, 1000 cells about 2 minutes and 5000 cells about 
+XX minutes.
+
+For UMI and 10X data, simulating 1000 cells takes XX, simulating 5000 takes YY.
