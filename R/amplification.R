@@ -65,7 +65,7 @@ quantCells <- function(amplifiedMolecules, pcntRange) {
 
       if(totalM[i] > target){
         useMean <- target / totalM[i]
-        SF <- rnorm(1, useMean, sd=.01)
+        SF <- abs(rnorm(1, useMean, sd=.01))
       } else {SF = rnorm(1, .95, sd=.01)}
       totalM[i] <- totalM[i] * SF
     }
