@@ -21,12 +21,12 @@ makePlots <- function(simulatedData, originalData)
   orig.slopes <- getSlopes(originalCounts, SeqDepth = colSums(originalCounts), Tau = .5, ditherCounts=FALSE)
 
   # Genes that have at least 10 non-zero in each dataset
-  MedExpr <- log(apply(originalCounts[names(sim.slopes),], 1, function(x) median(x[x!=0])))
+  MedExpr <- Rfast::Log(apply(originalCounts[names(sim.slopes),], 1, function(x) median(x[x!=0])))
   splitby <- sort(MedExpr)
   grps <- length(splitby) / 10
   sreg_orig1 <- split(splitby, ceiling(seq_along(splitby) / grps))
 
-  MedExpr <- log(apply(simulatedCounts[names(sim.slopes),], 1, function(x) median(x[x!=0])))
+  MedExpr <- Rfast::Log(apply(simulatedCounts[names(sim.slopes),], 1, function(x) median(x[x!=0])))
   splitby <- sort(MedExpr)
   grps <- length(splitby) / 10
   sreg_orig2 <- split(splitby, ceiling(seq_along(splitby) / grps))
@@ -123,8 +123,8 @@ makePlots <- function(simulatedData, originalData)
   plot(ecdf(Y$Depth), add=T, col="cornflowerblue")
   legend('bottomright', c("Simulated", "H1 Data"), col=c("brown1","cornflowerblue"), lwd=3)
 
-  X1 <- log(apply(simulatedCounts[XX,], 1, function(x) mean(x))+1)
-  X2 <- log(apply(originalCounts[XX,], 1, function(x) mean(x))+1)
+  X1 <- Rfast::Log(apply(simulatedCounts[XX,], 1, function(x) mean(x))+1)
+  X2 <- Rfast::Log(apply(originalCounts[XX,], 1, function(x) mean(x))+1)
   useg <- names(which(X1<Inf & X2 < Inf))
   X <- data.frame( Depth =X1[useg], Species = "Simulated")
   Y <- data.frame( Depth = X2[useg], Species = "Original")
@@ -142,8 +142,8 @@ makePlots <- function(simulatedData, originalData)
   plot(ecdf(Y$Depth), add=T, col="cornflowerblue")
   legend('bottomright', c("Simulated", "H1 Data"), col=c("brown1","cornflowerblue"), lwd=3)
 
-  X1 <- log(apply(simulatedCounts[XX,], 1, function(x) sd(x))+1)
-  X2 <- log(apply(originalCounts[XX,], 1, function(x) sd(x))+1)
+  X1 <- Rfast::Log(apply(simulatedCounts[XX,], 1, function(x) sd(x))+1)
+  X2 <- Rfast::Log(apply(originalCounts[XX,], 1, function(x) sd(x))+1)
   useg <- names(which(X1<Inf & X2 < Inf))
   X <- data.frame( Depth =X1[useg], Species = "Simulated")
   Y <- data.frame( Depth = X2[useg], Species = "Original")
@@ -161,8 +161,8 @@ makePlots <- function(simulatedData, originalData)
   plot(ecdf(Y$Depth), add=T, col="cornflowerblue")
   legend('bottomright', c("Simulated", "H1 Data"), col=c("brown1","cornflowerblue"), lwd=3)
 
-  X1 <- log(apply(simulatedCounts[XX,], 1, function(x) sd(x))+1)
-  X2 <- log(apply(originalCounts[XX,], 1, function(x) sd(x[x < quantile(x,.99)]))+1)
+  X1 <- Rfast::Log(apply(simulatedCounts[XX,], 1, function(x) sd(x))+1)
+  X2 <- Rfast::Log(apply(originalCounts[XX,], 1, function(x) sd(x[x < quantile(x,.99)]))+1)
   useg <- names(which(X1<Inf & X2 < Inf))
   X <- data.frame( Depth =X1[useg], Species = "Simulated")
   Y <- data.frame( Depth = X2[useg], Species = "Original")
@@ -246,7 +246,7 @@ makeCDP <- function(counts, NAME) {
 
   gslopes <- getSlopes(Data = counts, ditherCounts=FALSE)
 
-  MedExpr <- log(apply(counts[names(gslopes),], 1, function(x) median(x[x!=0])))
+  MedExpr <- Rfast::Log(apply(counts[names(gslopes),], 1, function(x) median(x[x!=0])))
   splitby <- sort(MedExpr)
   grps <- length(splitby) / 10
   sreg <- split(splitby, ceiling(seq_along(splitby) / grps))
@@ -257,7 +257,7 @@ makeCDPdot <- function(counts, NAME) {
 
   gslopes <- getSlopes(Data = counts, ditherCounts=FALSE)
 
-  MedExpr <- log(apply(counts[names(gslopes),], 1, function(x) median(x[x!=0])))
+  MedExpr <- Rfast::Log(apply(counts[names(gslopes),], 1, function(x) median(x[x!=0])))
   splitby <- sort(MedExpr)
   grps <- length(splitby) / 10
   sreg <- split(splitby, ceiling(seq_along(splitby) / grps))
@@ -289,3 +289,12 @@ dotPlot <- function(SLOPES, sreg, NAME) {
   # return(Modestat)
 
 }
+
+redobox <- function(DATA, smallc) {
+
+  DATA[DATA <= smallc] <- NA #truncate some values first, usually just zero
+  y <- Rfast::Log(DATA)
+
+  return(y)
+}
+

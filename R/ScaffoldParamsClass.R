@@ -1,25 +1,32 @@
-#' S4 object for scaffold simulation parameters
+setClassUnion("numericOrNULL", members = c("numeric", "NULL"))
+setClassUnion("listOrNULL", members = c("list", "NULL"))
+
+#' S4 object for Scaffold simulation parameters
 #'
 #' @export
 setClass("ScaffoldParams",
-         representation(numCells = "numeric",
+         representation(sceUMI = "logical",
+					 							numCells = "numeric",
                         numGenes = "numeric",
                         geneMeans = "numeric",
-                        geneTheta = "numeric",
+												totalTranscripts = "numeric",
                         genes = "character",
-                        captureEfficiency = "numeric",
-                        typeOfAmp = "character",
-                        numFirstAmpCycles = "numeric",
-                        numSecondAmpCycles = "numeric",
-                        firstAmpEfficiency = "numeric",
-                        secondAmpEfficiency = "numeric",
-                        tagEfficiency = "numeric",
-                        degree = "numeric", # should we keep this?
-                        percentRange = "numeric",
-                        protocol = "character",
-                        totalSD = "numeric",
+												protocol = "character",
 												useUMI = "logical",
-												sepPops = "list"))
+												popHet = "numeric",
+												geneEfficiency = "numericOrNULL",
+                        captureEfficiency = "numericOrNULL",
+												efficiencyRT = "numericOrNULL",
+                        typeOfAmp = "character",
+												numPreAmpCycles = "numeric",
+                        numAmpCycles = "numeric",
+                        preAmpEfficiency = "numeric",
+                        ampEfficiency = "numeric",
+                        tagEfficiency = "numericOrNULL",
+                        equalizationAmount = "numeric",
+                        totalDepth = "numeric",
+                        usePops = "listOrNULL",
+												useDynamic = "listOrNULL"))
 
 #' @importFrom utils head
 setMethod("show", signature(object = "ScaffoldParams"),
@@ -27,20 +34,22 @@ setMethod("show", signature(object = "ScaffoldParams"),
             cat("protocol:", object@protocol, "\n")
             cat("numCells:", object@numCells,"\n")
             cat("numGenes:",object@numGenes, "\n")
+						cat("totalTranscripts:",object@totalTranscripts, "\n")
             cat("geneMeans:", head(object@geneMeans), "...\n")
-            cat("geneTheta:", head(object@geneTheta), "...\n")
             cat("genes:", head(object@genes), "...\n")
-            cat("captureEfficiency:", head(object@captureEfficiency), "\n")
-            cat("typeOfAmp:", object@typeOfAmp, "\n")
-            cat("numFirstAmpCycles:", object@numFirstAmpCycles, "\n")
-            cat("numSecondAmpCycles:", object@numSecondAmpCycles, "\n")
-            cat("firstAmpEfficiency:", head(object@firstAmpEfficiency), "...\n")
-            cat("secondAmpEfficiency:", head(object@secondAmpEfficiency), "...\n")
-            cat("tagEfficiency:", head(object@tagEfficiency), "...\n")
-            cat("degree:", object@degree, "\n")
-            cat("percentRange:", object@percentRange, "\n")
-            cat("totalSD:", object@totalSD, "\n")
+						cat("popHet:", object@popHet, "\n")
 						cat("useUMI:", object@useUMI, "\n")
-						cat("sepPops:", object@sepPops, "\n")
-
+            cat("captureEfficiency:", head(object@captureEfficiency), "\n")
+						cat("efficiencyRT:", head(object@efficiencyRT), "\n")
+            cat("typeOfAmp:", object@typeOfAmp, "\n")
+            cat("numPreAmpCycles:", object@numFirstAmpCycles, "\n")
+            cat("numAmpCycles:", object@numSecondAmpCycles, "\n")
+            cat("preAmpEfficiency:", head(object@firstAmpEfficiency), "...\n")
+            cat("ampEfficiency:", head(object@secondAmpEfficiency), "...\n")
+            cat("tagEfficiency:", head(object@tagEfficiency), "...\n")
+            cat("equalizationAmount:", object@equalizationAmount, "\n") 
+            cat("totalDepth:", object@totalDepth, "\n")
+            
+						print(paste0("usePops:", head(object@usePops), "\n"))
+						print(paste0("useDynamic:", head(object@useDynamic), "\n"))
           })
