@@ -8,52 +8,52 @@
 #' @export
 simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
 {
-	
-	numCells <- sum(scaffoldParams@numCells)
-	cellPopulation <- rep(1:length(scaffoldParams@numCells), scaffoldParams@numCells)
-	
-	# Simulating dynamic populations
-	if (!is.null(scaffoldParams@useDynamic[[1]])) {
-		initialCounts <- generateDynamicGeneCounts(numCells = numCells, 
-												mu = scaffoldParams@geneMeans, 
-												dynamicParams = scaffoldParams@useDynamic)
-	  rownames(initialCounts) <- scaffoldParams@genes
-	} else {
-	if (!is.null(scaffoldParams@usePops[[1]])) {
-		cellSplit <- split(1:numCells, f=cellPopulation)
-    
-    allCounts <- lapply(1:length(cellSplit), function(x){
   
-      means <- scaffoldParams@geneMeans
-      numSamp <- length(means) * scaffoldParams@usePops$propGenes[x]
-      if (numSamp > 0) {
-        selectGenes <- sample(1:length(means), numSamp)
-        fc_genes <- abs(rnorm(length(selectGenes), mean = scaffoldParams@usePops$fc_mean[x], sd=scaffoldParams@usePops$fc_sd[x]))
-        flipfc <- sample(1:length(fc_genes), length(fc_genes) / 2)
-        fc_genes[flipfc] <- 1/ fc_genes[flipfc]
+  numCells <- sum(scaffoldParams@numCells)
+  cellPopulation <- rep(1:length(scaffoldParams@numCells), scaffoldParams@numCells)
   
-        means[selectGenes] <- means[selectGenes] * fc_genes
+  # Simulating dynamic populations
+  if (!is.null(scaffoldParams@useDynamic[[1]])) {
+    initialCounts <- generateDynamicGeneCounts(numCells = numCells, 
+                                               mu = scaffoldParams@geneMeans, 
+                                               dynamicParams = scaffoldParams@useDynamic)
+    rownames(initialCounts) <- scaffoldParams@genes
+  } else {
+    if (!is.null(scaffoldParams@usePops[[1]])) {
+      cellSplit <- split(1:numCells, f=cellPopulation)
+      
+      allCounts <- lapply(1:length(cellSplit), function(x){
+        
+        means <- scaffoldParams@geneMeans
+        numSamp <- length(means) * scaffoldParams@usePops$propGenes[x]
+        if (numSamp > 0) {
+          selectGenes <- sample(1:length(means), numSamp)
+          fc_genes <- abs(rnorm(length(selectGenes), mean = scaffoldParams@usePops$fc_mean[x], sd=scaffoldParams@usePops$fc_sd[x]))
+          flipfc <- sample(1:length(fc_genes), length(fc_genes) / 2)
+          fc_genes[flipfc] <- 1/ fc_genes[flipfc]
+          
+          means[selectGenes] <- means[selectGenes] * fc_genes
+        }
+        generateCnts <- generateGeneCounts(numCells = scaffoldParams@numCells[x],
+                                           mu = means,
+                                           popHet = scaffoldParams@popHet)
+        rownames(generateCnts) <- scaffoldParams@genes
+        return(generateCnts)
+      })
+      initialCounts <- do.call(cbind, allCounts)
+      
+    } else if (is.null(scaffoldParams@usePops[[1]])) {
+      if (is.null(inputInitial)) {
+        initialCounts <- generateGeneCounts(numCells = numCells,
+                                            mu = scaffoldParams@geneMeans,
+                                            popHet = scaffoldParams@popHet)
+        rownames(initialCounts) <- scaffoldParams@genes
+      } else {
+        initialCounts = inputInitial
       }
-      generateCnts <- generateGeneCounts(numCells = scaffoldParams@numCells[x],
-                                          mu = means,
-                                          popHet = scaffoldParams@popHet)
-      rownames(generateCnts) <- scaffoldParams@genes
-      return(generateCnts)
-    })
-    initialCounts <- do.call(cbind, allCounts)
-
-  } else if (is.null(scaffoldParams@usePops[[1]])) {
-	  if (is.null(inputInitial)) {
-	    initialCounts <- generateGeneCounts(numCells = numCells,
-	                                        mu = scaffoldParams@geneMeans,
-	                                        popHet = scaffoldParams@popHet)
-	    rownames(initialCounts) <- scaffoldParams@genes
-	  } else {
-	    initialCounts = inputInitial
-	   }
-	}
- }
- 
+    }
+  }
+  
   if (is.null(scaffoldParams@captureEfficiency)) {
     print("Estimating capture efficiency...")
     capEfficiency <- estimateCaptureEff(Data = initialCounts,
@@ -61,19 +61,19 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
                                         protocol = scaffoldParams@protocol,
                                         fromUMI = scaffoldParams@sceUMI)
   } else {
-   capEfficiency <- scaffoldParams@captureEfficiency
+    capEfficiency <- scaffoldParams@captureEfficiency
   }
   print("Finished estimating capture efficiency!")
-
+  
   print("Starting capture step (lysis and reverse transcription)...")
   capturedMolecules <- captureStep(round(initialCounts), 
-																	captureEffCell = capEfficiency, 
-                                  rtEffCell = scaffoldParams@efficiencyRT, 
-																	useUMI = scaffoldParams@useUMI)
+                                   captureEffCell = capEfficiency, 
+                                   rtEffCell = scaffoldParams@efficiencyRT, 
+                                   useUMI = scaffoldParams@useUMI)
   print("Finished capture step!")
-
+  
   # Now we split between the different protocols
-
+  
   if (scaffoldParams@protocol == "C1") {
     print("Starting preamplify step...")
     amplifiedMolecules <- preamplifyStep(capturedMolecules = capturedMolecules,
@@ -93,29 +93,29 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
                                   genes = scaffoldParams@genes,
                                   useUMI = scaffoldParams@useUMI)
     print("Finished sequencing and data formatting!")
-		
-		if(is.null(finalCounts$umi_counts)) {
-			finalCounts$umi_counts <- matrix(NA, nrow=nrow(finalCounts$counts), ncol=ncol(finalCounts$counts))
-		}
-			
-    SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
-       metadata = list(initialSimCounts = initialCounts),
-			 colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)))
+    
+    if(is.null(finalCounts$umi_counts)) {
+      finalCounts$umi_counts <- matrix(NA, nrow=nrow(finalCounts$counts), ncol=ncol(finalCounts$counts))
+    }
+    
+    returnsce <- SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
+                         metadata = list(initialSimCounts = initialCounts),
+                         colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)))
   }
-	
+  
   if (scaffoldParams@protocol == "10x" || scaffoldParams@protocol == "droplet") {
     print("Starting library prep and sequencing...")
     finalCounts <- sequenceStep10X(capturedMolecules, 
-                                totalDepth = scaffoldParams@totalSD,
-                                efficiencyPCR = scaffoldParams@ampEfficiency,
-                                roundsPCR = scaffoldParams@numAmpCycles,
-                                genes = scaffoldParams@genes,
-							   							 	efficiencyTag = scaffoldParams@tagEfficiency,
-																useUMI = scaffoldParams@useUMI)
+                                   totalDepth = scaffoldParams@totalSD,
+                                   efficiencyPCR = scaffoldParams@ampEfficiency,
+                                   roundsPCR = scaffoldParams@numAmpCycles,
+                                   genes = scaffoldParams@genes,
+                                   efficiencyTag = scaffoldParams@tagEfficiency,
+                                   useUMI = scaffoldParams@useUMI)
     print("Finished sequencing and data formatting!")
-    SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
-       metadata = list(initialSimCounts = initialCounts),
-			 colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)))
+    returnsce <- SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
+                         metadata = list(initialSimCounts = initialCounts),
+                         colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)))
   }
-
+  return(returnsce)
 }
