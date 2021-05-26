@@ -11,7 +11,7 @@ Scaffold can be installed from Github:
 ```{r}
 if (!requireNamespace("devtools", quietly=TRUE))
     install.packages("devtools")
-devtools::install_github("rhondabacher/Scaffold")
+devtools::install_github("rhondabacher/scaffold")
 ```
 
 # Vignette
