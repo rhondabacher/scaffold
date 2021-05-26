@@ -289,3 +289,12 @@ dotPlot <- function(SLOPES, sreg, NAME) {
   # return(Modestat)
 
 }
+
+redobox <- function(DATA, smallc) {
+
+  DATA[DATA <= smallc] <- NA #truncate some values first, usually just zero
+  y <- Rfast::Log(DATA)
+
+  return(y)
+}
+

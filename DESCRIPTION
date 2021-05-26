@@ -1,10 +1,10 @@
 Package: scaffold
 Type: Package
 Title: Simulation framework that models each step of a single-cell RNA-seq experiment
-Version: 0.1.0
+Version: 0.2.0
 Author: Rhonda Bacher
 Maintainer: Rhonda Bacher <rbacher@ufl.edu>
-Description: This package implements scaffold — a method to simulate scRNA-seq data.
+Description: This package implements Scaffold — a method to simulate scRNA-seq data.
 License: GPL (>= 2)
 LazyData: true
 Encoding: UTF-8
@@ -18,7 +18,12 @@ Imports:
     SingleCellExperiment,
     yarrr,
     methods,
-    Rcpp
+    Rcpp,
+    splines,
+    Rfast,
+    data.table,
+    iotools,
+    stringi
 URL: https://github.com/rhondabacher/scaffold
 BugReports: https://github.com/rhondabacher/scaffold/issues
 RoxygenNote: 7.1.1
@@ -26,5 +31,3 @@ Depends:
     R (>= 2.10)
 Suggests: BiocStyle, knitr, rmarkdown
 VignetteBuilder: knitr
-LinkingTo: 
-    Rcpp

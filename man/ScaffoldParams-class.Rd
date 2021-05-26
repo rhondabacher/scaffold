@@ -3,7 +3,7 @@
 \docType{class}
 \name{ScaffoldParams-class}
 \alias{ScaffoldParams-class}
-\title{S4 object for scaffold simulation parameters}
+\title{S4 object for Scaffold simulation parameters}
 \description{
-S4 object for scaffold simulation parameters
+S4 object for Scaffold simulation parameters
 }

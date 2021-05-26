@@ -4,21 +4,15 @@
 \alias{generateGeneCounts}
 \title{Generate initial counts}
 \usage{
-generateGeneCounts(numCells, mu, theta, type, degree)
+generateGeneCounts(numCells, mu, popHet)
 }
 \arguments{
 \item{numCells}{The number of cells to generate counts for.}
 
 \item{mu}{a vector containing the mean of each gene to simulate counts for.}
 
-\item{theta}{only needed if using the negative binomial (type='nb'). This is the theta
-where the variance is mu + mu^2/theta}
-
-\item{type}{the underlying distribution to simulate counts from. 
-Highly recomend sticking with the default Poisson, type='p'.}
-
-\item{degree}{the degree of heterogeneity within the cell population.
-Should be a vector of length two specifying the bounds}
+\item{popHet}{the degree of heterogeneity within the cell population.
+Should be a vector of length two specifying the bounds.}
 }
 \value{
 Output is matrix of counts, genes on the rows and cells
@@ -26,11 +20,4 @@ Output is matrix of counts, genes on the rows and cells
 }
 \description{
 Generates the transcripts in the cell.
-}
-\examples{
- # generate 50 cells each having 1000 genes
-mu <- rnorm(1000, 100, 25)
-initmat <- generateGeneCounts(50, mu = mu, type='p', degree=c(1/2,2))
-head(initmat)
-
 }

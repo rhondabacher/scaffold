@@ -2,17 +2,17 @@
 % Please edit documentation in R/simulate.R
 \name{simulateScaffold}
 \alias{simulateScaffold}
-\title{Run a scaffold simulation.}
+\title{Run a Scaffold simulation.}
 \usage{
 simulateScaffold(scaffoldParams, originalSCE, inputInitial = NULL)
 }
 \arguments{
-\item{scaffoldParams}{An object of class ScaffoldParams.}
+\item{scaffoldParams}{An object of class ScaffoldParams. Generated using the Scaffold::estimateScaffoldParams function.}
 
 \item{originalSCE}{The SingleCellExperiment used to create the scaffoldParams object.}
 
-\item{inputInitial}{A optional matrix of initial gene counts which should have the same dimension indicated in the \code{scaffoldParams} parameter. If left NULL, the initial counts will be generated according to the distribution indicated by the \code{model} parameter.}
+\item{inputInitial}{A optional matrix of initial gene counts which should have the same dimension indicated in the \code{scaffoldParams} parameter. If left NULL, the initial counts will be generated according to the distribution indicated by the \code{model} parameter. This is mainly used in simulations to isolate the effects of each step without regenerating a new initial mRNA counts.}
 }
 \description{
-Run a scaffold simulation.
+Run a Scaffold simulation.
 }

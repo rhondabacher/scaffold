@@ -1,13 +1,17 @@
-#' @export
-sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
-                          efficiencyPCR, roundsPCR, efficiencyTag=NULL,
-						              genes=scaffoldParams@genes, 
-                                      useUMI=FALSE,
-                                      cores=1) {
+#' Sequencing step of the Scaffold simulation
+#' @importFrom Rfast Log rep_row Sort
+#' @import data.table
+#' @importFrom iotools ctapply
+#' @importFrom stringi stri_c
+sequenceStepC1 <- function(amplifiedMolecules, 
+													equalizationAmount, 
+													totalDepth,
+                          efficiencyPCR, roundsPCR, efficiencyTag,
+						              genes, useUMI) {
 
 
    numCells <- length(amplifiedMolecules)
-	 amplifiedMoleculesQuant <- quantCells(amplifiedMolecules, pcntRange=pcntRange)
+	 amplifiedMoleculesQuant <- equalizeCells(amplifiedMolecules, equalizationAmount)
 	 amplifiedMolecules <- NULL
 
 	 taggedMolecules <- lapply(1:numCells, function(x) {
@@ -21,9 +25,9 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 	 })
 	 amplifiedMoleculesQuant <- NULL
 
-	 taggedMolecules <- lapply(taggedMolecules, function(x) x * 2) # based on C1 guide.
+	 taggedMolecules <- lapply(taggedMolecules, function(x) x * 2) # fragmenting based on C1 guide.
 
-	 quantifiedMolecules <- amplifyStep(taggedMolecules, genes=genes, efficiencyPCR, roundsPCR, protocol = "C1")
+	 quantifiedMolecules <- amplifyStep(taggedMolecules, genes = genes, efficiencyPCR, roundsPCR, protocol = "C1")
 	 taggedMolecules <- NULL
 
 
@@ -40,14 +44,13 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 	 geneProbs_all <- Rfast::Log(amplifiedMoleculesQuant_all / sum(as.numeric(amplifiedMoleculesQuant_all)))
 	 names(geneProbs_all) <- names(amplifiedMoleculesQuant_all)
 	 
-	 counts <- try(rmultinom(n=1, size=totalSD, prob=exp(geneProbs_all)), silent=T)
+	 counts <- try(rmultinom(n=1, size=totalDepth, prob=exp(geneProbs_all)), silent=T)
 	
 	 count_tab <- NULL
 	 umi_tab <- NULL
 	 
 	 print("Beginning formatting output...")
 	 
-	 library(data.table)
 	 cnt_split <- unlist(strsplit(rownames(counts), split="__", fixed=TRUE))
 	 cnt_split <- data.table(Gene = (cnt_split)[c(TRUE,FALSE)], Cell = (cnt_split)[c(FALSE,TRUE)], Count = counts[,1])
 
@@ -56,17 +59,6 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 	 cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
 	 cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
    
-     # cl <- parallel::makeForkCluster(cores)
-  #    doParallel::registerDoParallel(cl)
-  #    ind.block <- bigstatsr:::CutBySize(length(cnt_split_cell), nb = cores)
-  # 	 cnt_split_cell_cores <- lapply(bigstatsr::rows_along(ind.block), function(x) {
-  # 		   vals <- bigstatsr:::seq2(ind.block[x, ])
-  # 		   return(cnt_split_cell[vals])
-  # 		 })
-  #
-  #    library(foreach)
-
-     # my_tabs <- foreach(cellsplit = cnt_split_cell_cores) %dopar% {
      my_tabs <-  lapply(1:length(cnt_split_cell), function(x) {
 			 	 X <- cnt_split_cell[[x]]
 			   X$ugenes <- gsub("@.*","",X$Gene)  
@@ -82,7 +74,7 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 			   count_tab <- count_tab_temp[Rfast::Sort(rownames(count_tab_temp)),]
 			   
 				 if (useUMI==TRUE) {
-				     x_nonzero <- subset(X, Count > 0)
+				     x_nonzero <- subset(X, X$Count > 0)
 				     umi_tab_temptab <- table(x_nonzero$ugenes)
 				     umi_tab_temp <- matrix(umi_tab_temptab)
 				     rownames(umi_tab_temp) <- names(umi_tab_temptab)
@@ -95,10 +87,7 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 				 
 				 return(list(count_tab, umi_tab))
 	 })
-	# } 
-       # parallel::stopCluster(cl)
-#        my_tabs <- if(length(my_tabs) == cores) { do.call(c, my_tabs) }
-     
+	
 	   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
 	   colnames(count_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
 	   rownames(count_tab) <- genes
@@ -112,13 +101,16 @@ sequenceStepC1 <- function(amplifiedMolecules, pcntRange=0, totalSD=50000000,
 	 return(list(counts = count_tab, umi_counts = umi_tab))
 }
 
-# under construction
-#' @export
-sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
-                            efficiencyPCR, roundsPCR=12, efficiencyTag,
-                            genes, useUMI=TRUE, cores = 1)
+#' Sequencing step of the Scaffold simulation for 10X/droplet
+#' @importFrom Rfast Log rep_row Sort
+#' @import data.table
+#' @importFrom iotools ctapply
+#' @importFrom stringi stri_c
+sequenceStep10X <- function(capturedMolecules, totalDepth,
+                            efficiencyPCR, roundsPCR, efficiencyTag,
+                            genes, useUMI)
 {
-  print("Rearranging 10x data")
+  print("Rearranging 10X data")
   numCells <- length(capturedMolecules)
   label_capturedMolecules <- lapply(1:length(capturedMolecules), function(x) stringi::stri_c(capturedMolecules[[x]], x, sep="__"))
   
@@ -127,14 +119,15 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
     rownames(easyY) <- y
     return(easyY)
   })
-  
+  rm(capturedMolecules)
+	
   # Now everything is combined and PCR amp:
   longVectorCounts <- unlist(tab_capturedMolecules)
   names(longVectorCounts) <- do.call(c, label_capturedMolecules)
   
-  amplifiedMolecules <- amplifyStep(longVectorCounts, genes=genes, efficiencyPCR, roundsPCR, protocol = "10X")
-  
-	print("Beginning formatting output...")
+  amplifiedMolecules <- amplifyStep(longVectorCounts, genes = genes, efficiencyPCR, roundsPCR, protocol = "10X")
+  rm(longVectorCounts)
+	
   # Now a fragmentation step happens:
   geneProbs_all <- Rfast::Log(amplifiedMolecules / sum(amplifiedMolecules))
   names(geneProbs_all) <- names(amplifiedMolecules)
@@ -143,31 +136,22 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
   tagdM <- try(rmultinom(n=1, size=totalT, prob=exp(geneProbs_all)), silent=T)
   fragments <- as.vector(tagdM)
   names(fragments) <- rownames(tagdM)
-  
+  rm(amplifiedMolecules)
+	
   # Now we sequence:
   geneProbs_all <- Rfast::Log(fragments / sum(fragments))
   names(geneProbs_all) <- names(fragments)
-  counts <- try(rmultinom(n=1, size=totalSD, prob=exp(geneProbs_all)), silent=T)
+  counts <- try(rmultinom(n=1, size=totalDepth, prob=exp(geneProbs_all)), silent=T)
   
   ## Split matrix into nicer output:
-  print(paste0("Processing output for ",numCells ," cells."))
+  print(paste0("Processing output for ", numCells ," cells."))
 	cnt_split <- unlist(strsplit(rownames(counts), split="__", fixed=TRUE))
 	cnt_split <- data.table(Gene = (cnt_split)[c(TRUE,FALSE)], Cell = (cnt_split)[c(FALSE,TRUE)], Count = counts[,1])
   cnt_split$Cell <- factor(cnt_split$Cell)
   cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
   cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
 	
-  # cl <- parallel::makeForkCluster(cores)
-#   doParallel::registerDoParallel(cl)
-#   ind.block <- bigstatsr:::CutBySize(length(cnt_split_cell), nb = cores)
-#  cnt_split_cell_cores <- lapply(bigstatsr::rows_along(ind.block), function(x) {
-# 	   vals <- bigstatsr:::seq2(ind.block[x, ])
-# 	   return(cnt_split_cell[vals])
-# 	 })
-#
-#     library(foreach)
-#
-#     my_tabs <- foreach(cellsplit = cnt_split_cell_cores) %dopar% {
+
   my_tabs <-  lapply(1:length(cnt_split_cell), function(x) {
 	 	 X <- cnt_split_cell[[x]]
 	  X$ugenes <- gsub("@.*","",X$Gene)  
@@ -181,7 +165,7 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
 	  count_tab_temp <- rbind(count_tab_temp, zeroExpr)
 	  count_tab <- count_tab_temp[Rfast::Sort(rownames(count_tab_temp)),]
   
-	  x_nonzero <- subset(X, Count > 0)
+	  x_nonzero <- subset(X, X$Count > 0)
 	  umi_tab_temptab <- table(x_nonzero$ugenes)
 	  umi_tab_temp <- matrix(umi_tab_temptab)
 	  rownames(umi_tab_temp) <- names(umi_tab_temptab)
@@ -192,9 +176,7 @@ sequenceStep10X <- function(capturedMolecules, totalSD=50000000,
 	  umi_tab <- umi_tab_temp[Rfast::Sort(rownames(umi_tab_temp)),]
 	  return(list(count_tab, umi_tab))
 	})
-  # }
-  # parallel::stopCluster(cl)
-#   my_tabs <- if(length(my_tabs) == cores) { do.call(c, my_tabs) }
+ 
   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
   colnames(count_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
   rownames(count_tab) <- genes

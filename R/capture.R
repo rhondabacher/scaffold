@@ -1,6 +1,5 @@
-# this is step 2
+#' Capture cDNA from cell (cell lysis and conversion of mRNA to cDNA)
 #' @importFrom wrswoR sample_int_rej
-#' @export
 captureStep <- function(Data, captureEffCell = NULL, captureEffGene = NULL, 
                         rtEffCell = NULL, rtEffGene = NULL, useUMI = FALSE){
   
@@ -36,7 +35,7 @@ captureStep <- function(Data, captureEffCell = NULL, captureEffGene = NULL,
 	sampledM <- allMolecules[sampledM]
 
   ## Second part is the reverse transcription:
-	if (!is.null(rtEffCell)) {
+	 if (!is.null(rtEffCell)) {
 		countAll <- Rfast::Table(sampledM)
 		efficiencyG <- rtEffGene[names(countAll)]
 		geneProbs <- rep(efficiencyG, countAll)
@@ -53,16 +52,16 @@ captureStep <- function(Data, captureEffCell = NULL, captureEffGene = NULL,
 	    outSample <- sampledM2
 	  }
 
-	}
-   if (is.null(rtEffCell)){
-		
-  	  if (useUMI == TRUE) {
-  	    outSample <- make.unique(sampledM, "@")
-  	  } else {
-  	    outSample <- sampledM
-  	  }	
-	}
+  }
+  if (is.null(rtEffCell)){
+	
+	  if (useUMI == TRUE) {
+	    outSample <- make.unique(sampledM, "@")
+	  } else {
+	    outSample <- sampledM
+	  }	
+  }
   return(outSample)
-  })
-  return(capturedMolecules)
+ })
+ return(capturedMolecules)
 }
