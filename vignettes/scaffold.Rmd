@@ -4,8 +4,10 @@ output: BiocStyle::html_document
 toc: true
 vignette: >
   %\VignetteIndexEntry{scaffold}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -36,45 +38,101 @@ To install `Scaffold` via GitHub:
 devtools::install_github("rhondabacher/scaffold")
 ```
 
-# Usage
+# Run Scaffold
 
-## Estimating simulation parameters
+After successful installation, the package must be loaded into the working space:
 
-The first step in running a scaffold simulation is the estimation of
-simulation parameters from an existing scRNA-seq dataset, which should be saved as a `SingleCellExperiment` object. The
-`scaffold` package provides the `uneq_ec_data` as an example starting
-point.
+```{r, eval=TRUE}
+library(scaffold)
+```
+
+## Estimate simulation parameters
+
+The input dataset should be formatted as a `SingleCellExperiment` class. The
+`scaffold` package provides the `uneq_ec_data` to demonstrate:
 
 ```{r, warning=FALSE, error=FALSE, message=FALSE}
-library(scaffold)
-library(SingleCellExperiment)
 data(uneq_ec_data)
 sce <- SingleCellExperiment(list(counts = uneq_ec_data))
 ```
 
-We then can estimate simulation parameters with the
-`estimateScaffoldParameters` function, which returns an object of
-class `ScaffoldParams`.
+Now that we have the appropriate format for out input dataset, we first run the `estimateScaffoldParameters` function to set or estimate simulation parameters. The default parameters are set to simulate nonUMI data from the Smart-seq protocol. To change this, adjust the parameters `useUMI` (logical whether to make protocol UMI based) and `protocol` (both droplet and 10X are acceptable). If the input dataset are UMI counts, then it must be specified by setting `sceUMI = TRUE`. 
 
 ```{r}
-scaffoldParams <- estimateScaffoldParams(sce)
+scaffoldParams <- estimateScaffoldParameters(sce)
 ```
 
-It's worth noting that all of the parameters can also be set manually
-by passing them as options to `estimateScaffoldParameters`; see the
-function's documentation for more information.
+The function's documentation describes all the parameter options and a table of all the parameter options is given in Section [allparams].
 
-## Running scaffold simulations
+## Simulate data
 
 Once the `ScaffoldParams` object is constructed, simulations can be
-run with the `simulateScaffold` function.
+run with the `simulateScaffold` function. The only inputs to this function are the parameter object and the original sce dataset.
 
 ```{r, warning = FALSE, error = FALSE, message=FALSE}
 sce_sim <- simulateScaffold(scaffoldParams, sce)
 ```
 
-`sce_sim` is an object of class `SingleCellExperiment` that
-contains the simulated gene counts.
+The output `sce_sim` is an object of class `SingleCellExperiment` that
+contains the simulated gene counts. 
+
+`sce_sim` also outputs colData that contains the estimated capture efficiency per cell and the cell population (more on this later). 
+
+
+# Advanced simulation options
+
+## Altering parameters
+
+While many of the parameters can be estimated form the data and set based on a specific protocol, it may be of interest to compare how changing a parameter affects downstream properties of the data. To do this, a base simulation should be run so that the initial mRNA counts are generated and all parameters are estimated.
+
+Below we demonstrate simulating a baseline and simulating a single parameter change:
+
+```{r, warning = FALSE, error = FALSE, message=FALSE}
+# Baseline simulation
+scaffoldParams <- estimateScaffoldParameters(sce)
+sce_sim <- simulateScaffold(scaffoldParams, sce)
+
+```
+
+Now we want to examine the effect of only a single parameter, e.g. equalization amount. The previous output contains metadata and cell-specific data that can be passed to new simulations. The metadata object contains the simulated initial mRNA counts, this ensures all simulations are on the same starting population. The capture efficiency is estimated within simulateScaffold and output as column data. It is accessed via `colData()$capEfficiency`.
+
+```{r, warning = FALSE, error = FALSE, message=FALSE}
+# Some estimates are finalized in simulateScaffold so we want to pull those out:
+scaffoldParams@captureEfficiency <- colData(sce_sim)$capEfficiency
+
+# Change one parameter on interest
+print(scaffoldParams@equalizationAmount) # Previous setting
+scaffoldParams@equalizationAmount <- 0 # Update setting
+sce_sim_eq <- simulateScaffold(scaffoldParams, sce, inputInitial = sce_sim@metadata$initialSimCounts)
+```
+
+
+## Simulate multiple populations
+
+Scaffold can simulate multiple populations through the `numCells` and `usePops` parameters in the `estimateScaffoldParameters` function. Specify a vector with the number of cells for each population for `numCells`. The parameter `usePops` is a list object and should have the following elements: 
+* `propGenes` - The proportion of genes having distinct expression compared to the first (reference) population. The first population will be simulated based only on the input dataset and estimated/set parameters.
+* `fc_mean` - The average fold-change for expression differences compared to the first population.
+* `fc_sd` - Standard deviation of fold-change for expression differences compared to the first population.
+
+Fold-changes are simulated from a Normal(`fc_mean`, `fc_sd`) and the direction is chosen at random.
+
+These elements are vectors with length equal to the number of populations. The first value for each of these elements should be zero to indicate no changes should be made to the reference population.
+
+Below is an example simulating three cell populations each having 50 cells. Setting `popHet` ensures that we are simulating a homogeneous population as the reference, this is not required but just for demonstration. 
+
+```{r, warning = FALSE, error = FALSE, message=FALSE}
+scaffoldParams <- estimateScaffoldParameters(sce, numCells = c(50,50,50),
+                                             popHet = c(1,1), 
+                                             usePops = list(propGenes = c(0, .6, .4),
+                                                            fc_mean = c(0, 2, 1.5),
+                                                            fc_sd = c(0, .4, .4)
+                                                            ))
+
+```
+
+
+## Simulate continuous populations
+
 
 ## Visualizing simulation results
 
@@ -84,6 +142,8 @@ the simulation results.
 ```{r, warning=FALSE,error=FALSE, fig.align = "center", fig.width = 14}
 makePlots(sce_sim, sce)
 ```
+
+# Table of simulation parameters{#allparams}
 
 # Session info
 
@@ -103,6 +163,4 @@ XX minutes.
 For UMI and 10X data, simulating 1000 cells takes XX, simulating 5000 takes YY.
 
 
-How to simulate multiple populations?
 
-How to simulate continuous populations?
