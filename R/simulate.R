@@ -1,6 +1,6 @@
 #' Run a Scaffold simulation.
 #'
-#' @param scaffoldParams An object of class ScaffoldParams. Generated using the Scaffold::estimateScaffoldParams function.
+#' @param scaffoldParams An object of class ScaffoldParams. Generated using the Scaffold::estimateScaffoldParameters function.
 #' @param originalSCE The SingleCellExperiment used to create the scaffoldParams object.
 #' @param inputInitial A optional matrix of initial gene counts which should have the same dimension indicated in the \code{scaffoldParams} parameter. If left NULL, the initial counts will be generated according to the distribution indicated by the \code{model} parameter. This is mainly used in simulations to isolate the effects of each step without regenerating a new initial mRNA counts.
 #'

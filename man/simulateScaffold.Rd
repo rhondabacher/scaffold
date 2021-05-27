@@ -7,7 +7,7 @@
 simulateScaffold(scaffoldParams, originalSCE, inputInitial = NULL)
 }
 \arguments{
-\item{scaffoldParams}{An object of class ScaffoldParams. Generated using the Scaffold::estimateScaffoldParams function.}
+\item{scaffoldParams}{An object of class ScaffoldParams. Generated using the Scaffold::estimateScaffoldParameters function.}
 
 \item{originalSCE}{The SingleCellExperiment used to create the scaffoldParams object.}
 

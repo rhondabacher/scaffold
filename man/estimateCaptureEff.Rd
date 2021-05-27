@@ -14,7 +14,7 @@ estimateCaptureEff(Data, compareData, protocol, fromUMI)
 
 \item{protocol}{Which scRNA-seq protocol is being simulated.}
 
-\item{sceUMI}{whether or not the original data are UMI counts.}
+\item{fromUMI}{whether or not the original data are UMI counts.}
 }
 \description{
 Estimate capture efficiency for simulated data

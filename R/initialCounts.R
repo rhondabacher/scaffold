@@ -24,7 +24,7 @@ generateGeneCounts <- function(numCells, mu, popHet) {
 #' Generate a dynamic cell population
 ## The motivation for this code is from the simstudy package.
 #' @inheritParams generateGeneCounts
-#' @inheritParams estimateScaffoldParams
+#' @inheritParams estimateScaffoldParameters
 #' @import splines
 generateDynamicGeneCounts <- function(numCells, mu, dynamicParams) {
   
