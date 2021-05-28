@@ -1,26 +1,16 @@
 ---
-title: "scaffold: simulating single-cell RNA-seq data"
-output: BiocStyle::html_document
-toc: true
+title: "Scaffold: simulating single-cell RNA-seq data"
+author: "Rhonda Bacher"
+output:
+    BiocStyle::html_document:
+        toc: true
+        toc_float: false
 vignette: >
-  %\VignetteIndexEntry{scaffold}
+  %\VignetteIndexEntry{Scaffold}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
-  chunk_output_type: console
+  \usepackage[utf8]{inputenc}
 ---
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
-
-```{r style, echo = FALSE, results = 'asis'}
-BiocStyle::markdown()
-```
-
 
 # Introduction
 
@@ -28,9 +18,9 @@ BiocStyle::markdown()
 statistically modelling each step of the experimental
 process. Simulation parameters can be estimated from real datasets,
 and a comprehensive plotting function is provided to generate summary
-figures comparing the real and simulated data.
+figures comparing the real and simulated data. This vignette provides details and examples using the Scaffold package.
 
-## Installation
+# Installation
 
 To install `Scaffold` via GitHub:
 
@@ -48,46 +38,71 @@ library(scaffold)
 
 ## Estimate simulation parameters
 
-The input dataset should be formatted as a `SingleCellExperiment` class. The
-`scaffold` package provides the `uneq_ec_data` to demonstrate:
+The most common way to use Scaffold is to use an input dataset from which various parameters are estimated and then used to simulate data. The input dataset can be formatted as a data matrix or of the `SingleCellExperiment` class. The
+`scaffold` package provides the `uneq_ec_data` dataset to demonstrate formatting data as a `SingleCellExperiment` class:
 
 ```{r, warning=FALSE, error=FALSE, message=FALSE}
+# Loading the example data
 data(uneq_ec_data)
+
+# Loading the SingleCellExperiment package
+if (!requireNamespace("SingleCellExperiment", quietly = TRUE))
+  BiocManager::install("SingleCellExperiment")
+library(SingleCellExperiment)
+
+# Creating the SingleCellExperiment class object:
 sce <- SingleCellExperiment(list(counts = uneq_ec_data))
 ```
 
-Now that we have the appropriate format for out input dataset, we first run the `estimateScaffoldParameters` function to set or estimate simulation parameters. The default parameters are set to simulate nonUMI data from the Smart-seq protocol. To change this, adjust the parameters `useUMI` (logical whether to make protocol UMI based) and `protocol` (both droplet and 10X are acceptable). If the input dataset are UMI counts, then it must be specified by setting `sceUMI = TRUE`. 
+Now that we have the appropriate format for our input dataset, we first run the `estimateScaffoldParameters` function to set or estimate simulation parameters. The default parameters are set to simulate nonUMI data from the C1/Smart-seq protocol. To change this, adjust the parameters `useUMI` (logical; whether to make the protocol UMI based) and `protocol` ("C1", "droplet" and "10X" are all acceptable). If the input dataset already contains UMI counts, then this should be specified by setting parameters `sceUMI = TRUE`. 
 
-```{r}
-scaffoldParams <- estimateScaffoldParameters(sce)
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+scaffoldParams <- estimateScaffoldParameters(sce, sceUMI=FALSE, useUMI = FALSE, protocol="C1")
 ```
 
-The function's documentation describes all the parameter options and a table of all the parameter options is given in Section [allparams].
+The `estimateScaffoldParameters` function documentation describes all the parameter options. A table of all the parameter options with notes is also given in this vignette in [Section 5](#allparams).
 
 ## Simulate data
 
 Once the `ScaffoldParams` object is constructed, simulations can be
-run with the `simulateScaffold` function. The only inputs to this function are the parameter object and the original sce dataset.
+run with the `simulateScaffold` function. The inputs to this function are the parameter object and the original sce dataset.
 
-```{r, warning = FALSE, error = FALSE, message=FALSE}
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
 sce_sim <- simulateScaffold(scaffoldParams, sce)
 ```
 
 The output `sce_sim` is an object of class `SingleCellExperiment` that
 contains the simulated gene counts. 
 
-`sce_sim` also outputs colData that contains the estimated capture efficiency per cell and the cell population (more on this later). 
-
-
 # Advanced simulation options
+
+## Simulating UMI, droplet, or 10X data
+
+To simulate data with UMIs or from the droplet/10X protocols the following parameters can be adjusted:
+
+```{r, warning=FALSE, error=FALSE, message=FALSE, eval=FALSE}
+## The following will set the parameters as if the smart-seq type protocol was UMI based:
+scaffoldParams <- estimateScaffoldParameters(sce, sceUMI = FALSE, useUMI = TRUE, protocol="C1")
+
+## The following will set the parameters as if the droplet/10X protocol was used.
+scaffoldParams <- estimateScaffoldParameters(sce, sceUMI = FALSE, useUMI = TRUE, protocol="10X")
+```
+
+Let's look at an example generating UMI counts. When the UMI option is used, the output of `simulateScaffold` contains two matrices, one having the read counts and the other having the umi counts.
+
+```{r, warning=FALSE, error=FALSE, message=FALSE, eval=FALSE}
+scaffoldParams <- estimateScaffoldParameters(sce, sceUMI = FALSE, useUMI = TRUE, protocol="C1")
+sce_sim <- simulateScaffold(scaffoldParams, sce)
+sce_sim
+```
 
 ## Altering parameters
 
-While many of the parameters can be estimated form the data and set based on a specific protocol, it may be of interest to compare how changing a parameter affects downstream properties of the data. To do this, a base simulation should be run so that the initial mRNA counts are generated and all parameters are estimated.
+While many of the parameters can be estimated from the data and set based on a specific protocol, it may be of interest to compare how changing a parameter affects downstream properties of the data. To do this, a base simulation should be run so that the initial mRNA counts are generated and all parameters are pre-estimated.
 
-Below we demonstrate simulating a baseline and simulating a single parameter change:
+Below we demonstrate simulating a baseline and then simulating a single parameter change:
 
-```{r, warning = FALSE, error = FALSE, message=FALSE}
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
 # Baseline simulation
 scaffoldParams <- estimateScaffoldParameters(sce)
 sce_sim <- simulateScaffold(scaffoldParams, sce)
@@ -96,11 +111,11 @@ sce_sim <- simulateScaffold(scaffoldParams, sce)
 
 Now we want to examine the effect of only a single parameter, e.g. equalization amount. The previous output contains metadata and cell-specific data that can be passed to new simulations. The metadata object contains the simulated initial mRNA counts, this ensures all simulations are on the same starting population. The capture efficiency is estimated within simulateScaffold and output as column data. It is accessed via `colData()$capEfficiency`.
 
-```{r, warning = FALSE, error = FALSE, message=FALSE}
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
 # Some estimates are finalized in simulateScaffold so we want to pull those out:
 scaffoldParams@captureEfficiency <- colData(sce_sim)$capEfficiency
 
-# Change one parameter on interest
+# Change one parameter of interest
 print(scaffoldParams@equalizationAmount) # Previous setting
 scaffoldParams@equalizationAmount <- 0 # Update setting
 sce_sim_eq <- simulateScaffold(scaffoldParams, sce, inputInitial = sce_sim@metadata$initialSimCounts)
@@ -109,25 +124,22 @@ sce_sim_eq <- simulateScaffold(scaffoldParams, sce, inputInitial = sce_sim@metad
 
 ## Simulate multiple populations
 
-Scaffold can simulate multiple populations through the `numCells` and `usePops` parameters in the `estimateScaffoldParameters` function. Specify a vector with the number of cells for each population for `numCells`. The parameter `usePops` is a list object and should have the following elements: 
+Scaffold can simulate multiple populations through the `numCells` and `usePops` parameters in the `estimateScaffoldParameters` function. First, specify a vector with the number of cells for each population in `numCells`. The parameter `usePops` is a list object and should have the following elements: 
+
 * `propGenes` - The proportion of genes having distinct expression compared to the first (reference) population. The first population will be simulated based only on the input dataset and estimated/set parameters.
 * `fc_mean` - The average fold-change for expression differences compared to the first population.
 * `fc_sd` - Standard deviation of fold-change for expression differences compared to the first population.
 
-Fold-changes are simulated from a Normal(`fc_mean`, `fc_sd`) and the direction is chosen at random.
-
-These elements are vectors with length equal to the number of populations. The first value for each of these elements should be zero to indicate no changes should be made to the reference population.
+Fold-changes are simulated from a Normal(`fc_mean`, `fc_sd`) and the direction is chosen at random. These three elements are vectors with length equal to the number of populations. The first value for each of these elements should be zero to indicate no changes should be made to the reference population.
 
 Below is an example simulating three cell populations each having 50 cells. Setting `popHet` ensures that we are simulating a homogeneous population as the reference, this is not required but just for demonstration. 
 
-```{r, warning = FALSE, error = FALSE, message=FALSE}
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
 scaffoldParams <- estimateScaffoldParameters(sce, numCells = c(50,50,50),
-                                             popHet = c(1,1), 
-                                             usePops = list(propGenes = c(0, .6, .4),
-                                                            fc_mean = c(0, 2, 1.5),
-                                                            fc_sd = c(0, .4, .4)
-                                                            ))
-
+                                  popHet = c(1,1), 
+                                  usePops = list(propGenes = c(0, .6, .4),
+                                                 fc_mean = c(0, 2, 1.5),
+                                                 fc_sd = c(0, .4, .4)))
 ```
 
 
@@ -139,11 +151,32 @@ scaffoldParams <- estimateScaffoldParameters(sce, numCells = c(50,50,50),
 `scaffold` also offers a function for generating summary figures of
 the simulation results.
 
-```{r, warning=FALSE,error=FALSE, fig.align = "center", fig.width = 14}
+```{r, warning=FALSE,error=FALSE, fig.align = "center", fig.width = 14, eval=FALSE}
 makePlots(sce_sim, sce)
 ```
 
 # Table of simulation parameters{#allparams}
+
+
+Parameter | Usage/Default | Notes/Tips
+------------- | ------------- | ------------- 
+Protocol to simulate from | C1/Smart-seq (default), 10X, droplet | Droplet and 10X have the same default settings.
+Whether to use UMI | True, False (default) | This is automatically set to TRUE for 10X/droplet protocols.
+Number of cells | Estimated from input data | 
+Number of genes | Estimated from input data | 
+Gene means | Estimated from input data | 
+Total transcripts | Assumes 300,000 per cell | 
+Degree of heterogeneity | Estimated from input data | A cell-specific scale factor simulate underlying cell population heterogeneity.
+Capture efficiency | Estimated from input data | 
+Number of pre-amplification cycles | For C1/Smart-seq default is 18 | Usually this is specified in the experimental protocol
+Number of amplification cycles |  Default is 12 for all protocols | Usually this is specified in the experimental protocol
+Pre-amplification efficiency | Generated from N(0.95, 0.02) for C1/Smart-seq data | This step is not used in 10X/droplet protocols.
+Amplification efficiency | Generated from N(0.95, 0.02) for all protocols | Cell-specific values for C1/Fluidigm and only one value for 10X/droplet
+Equalization amount | Value in [0,1] | 0 (complete equalization), 1 (no equalization; default), any other value is partial equalization, see manuscript Methods for details.
+Tagmentation efficiency | Generated from N(0.95, 0.02) for all protocols | Cell-specific values for C1/Fluidigm and only one value for 10X/droplet
+Total sequencing depth | Default is the sum of all counts in the input data |
+
+
 
 # Session info
 
@@ -155,12 +188,17 @@ print(sessionInfo())
 
 # Frequently Asked Questions
 
-How long does scaffold take to run?
+How long does Scaffold take to run?
 
-On non-UMI data simulating 100 cells takes around 13 seconds, 1000 cells about 2 minutes and 5000 cells about
-XX minutes.
+Below are time trials for different protocol settings and number of cells. For UMI protocols, tracking the unique molecules is memory intensive and presents a limitation. We have included a section on how to generate larger numbers of cells in Section XX.
 
-For UMI and 10X data, simulating 1000 cells takes XX, simulating 5000 takes YY.
+Number of Cells  | Runtime (minutes) | Protocol
+------------- | ------------- |  ------------- 
+100         | 0.14 | C1, non-UMI
+1000        | 1.55 | C1, non-UMI
+5000        | 9.41 | C1, non-UMI
+1000        | 3.73 | UMI/10X
+5000        | 24.09 | UMI/10X
 
 
 
