@@ -16,9 +16,9 @@ devtools::install_github("rhondabacher/scaffold")
 
 # Vignette
 
-Details and examples on how to use R package are located in the vignette:
+Details and examples on how to use the Scaffold R package are located:
 
-* [Vignette](XXX)
+* [Scaffold Vignette](https://www.rhondabacher.com/scaffold-vignette.pdf)
 
 
 # Citation
