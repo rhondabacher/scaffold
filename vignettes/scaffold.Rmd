@@ -52,6 +52,7 @@ library(SingleCellExperiment)
 
 # Creating the SingleCellExperiment class object:
 sce <- SingleCellExperiment(list(counts = uneq_ec_data))
+sce
 ```
 
 Now that we have the appropriate format for our input dataset, we first run the `estimateScaffoldParameters` function to set or estimate simulation parameters. The default parameters are set to simulate nonUMI data from the C1/Smart-seq protocol. To change this, adjust the parameters `useUMI` (logical; whether to make the protocol UMI based) and `protocol` ("C1", "droplet" and "10X" are all acceptable). If the input dataset already contains UMI counts, then this should be specified by setting parameters `sceUMI = TRUE`. 
@@ -60,7 +61,7 @@ Now that we have the appropriate format for our input dataset, we first run the 
 scaffoldParams <- estimateScaffoldParameters(sce, sceUMI=FALSE, useUMI = FALSE, protocol="C1")
 ```
 
-The `estimateScaffoldParameters` function documentation describes all the parameter options. A table of all the parameter options with notes is also given in this vignette in [Section 5](#allparams).
+The `estimateScaffoldParameters` function documentation describes all the parameter options. A table of all the parameter options with notes is also given in this vignette in [Section 6](#allparams).
 
 ## Simulate data
 
@@ -74,6 +75,13 @@ sce_sim <- simulateScaffold(scaffoldParams, sce)
 The output `sce_sim` is an object of class `SingleCellExperiment` that
 contains the simulated gene counts. 
 
+To access the simulated counts:
+
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
+simcounts <- counts(sce_sim)
+simcounts[1:5,1:5]
+```
+
 # Advanced simulation options
 
 ## Simulating UMI, droplet, or 10X data
@@ -81,32 +89,39 @@ contains the simulated gene counts.
 To simulate data with UMIs or from the droplet/10X protocols the following parameters can be adjusted:
 
 ```{r, warning=FALSE, error=FALSE, message=FALSE, eval=FALSE}
-## The following will set the parameters as if the smart-seq type protocol was UMI based:
+## The following will set the parameters as if the C1 protocol was UMI based:
 scaffoldParams <- estimateScaffoldParameters(sce, sceUMI = FALSE, useUMI = TRUE, protocol="C1")
 
 ## The following will set the parameters as if the droplet/10X protocol was used.
 scaffoldParams <- estimateScaffoldParameters(sce, sceUMI = FALSE, useUMI = TRUE, protocol="10X")
 ```
 
-Let's look at an example generating UMI counts. When the UMI option is used, the output of `simulateScaffold` contains two matrices, one having the read counts and the other having the umi counts.
+Let's look at an example generating UMI counts. When the UMI option is used, the output of `simulateScaffold` contains two matrices, one having the read counts and the other with the umi counts.
 
-```{r, warning=FALSE, error=FALSE, message=FALSE, eval=FALSE}
+```{r, warning=FALSE, error=FALSE, message=FALSE, eval=TRUE}
 scaffoldParams <- estimateScaffoldParameters(sce, sceUMI = FALSE, useUMI = TRUE, protocol="C1")
 sce_sim <- simulateScaffold(scaffoldParams, sce)
 sce_sim
 ```
 
+To access the umi counts:
+
+```{r, warning=FALSE, error=FALSE, message=FALSE, eval=TRUE}
+simumis <- sce_sim@assays@data$umi_counts
+simumis[1:5,1:5]
+```
+
+
 ## Altering parameters
 
 While many of the parameters can be estimated from the data and set based on a specific protocol, it may be of interest to compare how changing a parameter affects downstream properties of the data. To do this, a base simulation should be run so that the initial mRNA counts are generated and all parameters are pre-estimated.
 
-Below we demonstrate simulating a baseline and then simulating a single parameter change:
+Below we demonstrate code to simulate a baseline and a single parameter change:
 
 ```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
 # Baseline simulation
 scaffoldParams <- estimateScaffoldParameters(sce)
 sce_sim <- simulateScaffold(scaffoldParams, sce)
-
 ```
 
 Now we want to examine the effect of only a single parameter, e.g. equalization amount. The previous output contains metadata and cell-specific data that can be passed to new simulations. The metadata object contains the simulated initial mRNA counts, this ensures all simulations are on the same starting population. The capture efficiency is estimated within simulateScaffold and output as column data. It is accessed via `colData()$capEfficiency`.
@@ -118,7 +133,8 @@ scaffoldParams@captureEfficiency <- colData(sce_sim)$capEfficiency
 # Change one parameter of interest
 print(scaffoldParams@equalizationAmount) # Previous setting
 scaffoldParams@equalizationAmount <- 0 # Update setting
-sce_sim_eq <- simulateScaffold(scaffoldParams, sce, inputInitial = sce_sim@metadata$initialSimCounts)
+sce_sim_eq <- simulateScaffold(scaffoldParams, sce, 
+                               inputInitial = sce_sim@metadata$initialSimCounts)
 ```
 
 
@@ -134,24 +150,102 @@ Fold-changes are simulated from a Normal(`fc_mean`, `fc_sd`) and the direction i
 
 Below is an example simulating three cell populations each having 50 cells. Setting `popHet` ensures that we are simulating a homogeneous population as the reference, this is not required but just for demonstration. 
 
-```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=TRUE}
 scaffoldParams <- estimateScaffoldParameters(sce, numCells = c(50,50,50),
                                   popHet = c(1,1), 
                                   usePops = list(propGenes = c(0, .6, .4),
                                                  fc_mean = c(0, 2, 1.5),
                                                  fc_sd = c(0, .4, .4)))
+multipop.sce <- simulateScaffold(scaffoldParams, sce)
 ```
 
+Below we can visualize the three distinct populations in a t-SNE plot using the `scater` R package:
+
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=TRUE}
+if (!requireNamespace("scater", quietly = TRUE))
+  BiocManager::install("scater")
+library(scater)
+
+
+multipop.sce <- logNormCounts(multipop.sce) 
+multipop.sce <- runPCA(multipop.sce, name="PCA",
+                        ncomponents=15)
+multipop.sce <- runTSNE(multipop.sce, perplexity=10,
+                         dimred="PCA", n_dimred=10)
+plotReducedDim(multipop.sce, dimred = "TSNE", colour_by = "cellPopulation",
+                    point_alpha = .8, point_size=4) +
+                theme(text = element_text(size=20)) + 
+                scale_colour_discrete(name="Population")
+```
 
 ## Simulate continuous populations
 
+Scaffold can additionally simulate continuous cell populations or those having dyanmically expressed genes (e.g. cell development/differentiation) using the `useDynamic` parameter. We assume some proportion of genes drive the dynamic process and we simulate their initial mRNA counts via a B-spline. The parameter `useDynamic` is a list object and should have the following elements: 
 
-## Visualizing simulation results
+* `propGenes` - The proportion of genes to be simulated with dynamic expression.
+* `degree` - The degree of the B-spline (default is 2).
+* `knots` - Knots for the B-spline or 'locations' of major change along the continuous path of cells. The default is two knots and the locations are drawn from Uniform(0, .5) and Uniform(.5,1). The knot values must be within (0,1). 
+* `theta` - the directional changes between the edges and knots, this is a vector of length equal to knots+degree+1. The default is to generate all directions from Normal(5, 5).
 
-`scaffold` also offers a function for generating summary figures of
-the simulation results.
+User-specified values for `knots` and `theta` must be matrices as these are different for each gene.
 
-```{r, warning=FALSE,error=FALSE, fig.align = "center", fig.width = 14, eval=FALSE}
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=TRUE}
+set.seed(14)
+RcppZiggurat::zsetseed(14)
+```
+
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=TRUE}
+
+# Say we want 15% of genes dynamic
+ngenes <- ceiling(.15 * nrow(sce))
+
+myknots <- matrix(runif(2*ngenes, 0, 1), ncol=2, nrow=ngenes)
+mytheta <- matrix(rnorm(5, 5, 5), ncol=5, nrow=ngenes)
+
+scaffoldParams <- estimateScaffoldParameters(sce, numCells = 50,
+                                  popHet = c(1,1), 
+                                  useDynamic = list(propGenes = .15,
+                                                 degree = 2,
+                                                 knots = myknots,
+                                                 theta = mytheta))
+multipop.sce <- simulateScaffold(scaffoldParams, sce)
+```
+
+Let's plot one of the genes that we simulated to be dynamic and a non-dynamic gene:
+
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=TRUE, fig.width=6, fig.height=3, fig.align="center"}
+# Scaffold outputs the dynamic genes at the bottom of the output data matrix
+cells <- 1:ncol(multipop.sce)
+par(mfrow=c(1,2))
+plot(cells, counts(multipop.sce)[17150,], xlab="Cells", ylab="Simulated Counts", main="Dynamic Gene")
+plot(cells, counts(multipop.sce)[192,], xlab="Cells", ylab="Simulated Counts", main="non-Dynamic Gene")
+```
+
+## Simulating large cell populations{#bigsims}
+
+To simulate more than 5k cells, it's best to run Scaffold in batches especially when using UMIs as tracking the unique transcripts is memory intensive. Similar to the section for altering parameters, we can similarly estimate the baseline simulation parameters and then batches can be generated consecutively or in parallel (e.g. across high throughput compute cores).
+
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
+# Baseline simulation
+scaffoldParams <- estimateScaffoldParameters(sce)
+sce_sim <- simulateScaffold(scaffoldParams, sce)
+
+# To keep all parameters the same, pull out the capture efficiencies and the initial mRNA counts. 
+## Then this can be used to cells e.g 2k at a time.
+scaffoldParams@captureEfficiency <- colData(sce_sim)$capEfficiency
+scaffoldParams@numCells <- 2000
+sce_sim_eq <- simulateScaffold(scaffoldParams, sce, 
+                               inputInitial = sce_sim@metadata$initialSimCounts)
+```
+
+
+# Summary plots of simulated data
+
+`scaffold` offers a function for generating summary figures of
+the simulation results called `makePlots`. The input is the output of `simulateScaffold` and the original sce object.
+
+```{r, warning=FALSE,error=FALSE, fig.align = "center", fig.height = 10,fig.width=8, eval=TRUE}
+par(mfrow=c(3,2))
 makePlots(sce_sim, sce)
 ```
 
@@ -178,19 +272,11 @@ Total sequencing depth | Default is the sum of all counts in the input data |
 
 
 
-# Session info
-
-Here is the output of sessionInfo on the system on which this document was compiled:
-
-```{r}
-print(sessionInfo())
-```
-
 # Frequently Asked Questions
 
-How long does Scaffold take to run?
+* How long does Scaffold take to run?
 
-Below are time trials for different protocol settings and number of cells. For UMI protocols, tracking the unique molecules is memory intensive and presents a limitation. We have included a section on how to generate larger numbers of cells in Section XX.
+Below are time trials for different protocol settings and number of cells. For UMI protocols, tracking the unique molecules is memory intensive and presents a limitation. We have included a section on how to generate larger numbers of cells in [Section 2.5](#bigsims).
 
 Number of Cells  | Runtime (minutes) | Protocol
 ------------- | ------------- |  ------------- 
@@ -200,5 +286,15 @@ Number of Cells  | Runtime (minutes) | Protocol
 1000        | 3.73 | UMI/10X
 5000        | 24.09 | UMI/10X
 
+
+
+
+# Session info
+
+Here is the output of `sessionInfo` on the system on which this document was compiled:
+
+```{r}
+sessionInfo()
+```
 
 

@@ -11,8 +11,6 @@ Encoding: UTF-8
 Imports:
     wrswoR,
     multinomRob,
-    quantreg,
-    SCnorm,
     parallel,
     MASS,
     SingleCellExperiment,
@@ -29,5 +27,5 @@ BugReports: https://github.com/rhondabacher/scaffold/issues
 RoxygenNote: 7.1.1
 Depends: 
     R (>= 2.10)
-Suggests: BiocStyle, knitr, rmarkdown
+Suggests: BiocStyle, knitr, rmarkdown, BiocManager, RcppZiggurat, scater
 VignetteBuilder: knitr
