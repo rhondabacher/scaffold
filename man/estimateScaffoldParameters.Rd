@@ -5,7 +5,7 @@
 \title{Estimate or set all parameters for Scaffold simulation.}
 \usage{
 estimateScaffoldParameters(
-  sce,
+  sce = NULL,
   sceUMI = FALSE,
   numCells = NULL,
   numGenes = NULL,
