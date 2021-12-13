@@ -28,7 +28,7 @@
 #' @importFrom methods new
 #' @importFrom Rfast Rnorm comb_n
 #' @export
-estimateScaffoldParameters <- function(sce, sceUMI = FALSE, numCells = NULL, numGenes = NULL, geneMeans = NULL,
+estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NULL, numGenes = NULL, geneMeans = NULL,
       totalTranscripts = NULL, genes = NULL, protocol = "C1", useUMI = FALSE, 
 			popHet = NULL,
 			geneEfficiency = NULL, 

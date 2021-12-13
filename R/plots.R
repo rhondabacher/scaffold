@@ -21,7 +21,7 @@ makePlots <- function(simulatedData, originalData)
                     data = longdata,
                     xlab = "",
                     ylab = "Sequencing Depth", pal=c("cornflowerblue", "brown1"),
-                    main = "", point.cex=1.1, bar.lwd=1, cex.lab=2, cex.axis=2,cex.names=2)
+                    main = "", point.cex=1.1, bar.lwd=1, cex.lab=1.2, cex.axis=1.2,cex.names=1.2)
   
   X <- data.frame( Depth = colSums(simulatedCounts!=0) / nrow(simulatedCounts), Species = "Simulated")
   Y <- data.frame( Depth = colSums(originalCounts!=0) / nrow(simulatedCounts), Species = "Original")
@@ -31,7 +31,7 @@ makePlots <- function(simulatedData, originalData)
                     data = longdata, ylim=c(0,1),
                     xlab = "",
                     ylab = "Cellular Detection Rate", pal=c("cornflowerblue", "brown1"),
-                    main = "", point.cex=1.1, bar.lwd=1, cex.lab=2, cex.axis=2,cex.names=2)
+                    main = "", point.cex=1.1, bar.lwd=1, cex.lab=1.2, cex.axis=1.2,cex.names=1.2)
   
   XX <- sample(Genes, 200)
   X1 <- apply(simulatedCounts[XX,], 1, function(x) sum(x!=0)) / dim(simulatedCounts)[2]
@@ -45,7 +45,7 @@ makePlots <- function(simulatedData, originalData)
                     data = longdata,
                     xlab = "",
                     ylab = "Detection Rate (Gene)", pal=c("cornflowerblue", "brown1"),
-                    main = "", point.cex=1.1, bar.lwd=1, cex.lab=2, cex.axis=2,cex.names=2)
+                    main = "", point.cex=1.1, bar.lwd=1, cex.lab=1.2, cex.axis=1.2,cex.names=1.2)
   
   
   
@@ -61,7 +61,7 @@ makePlots <- function(simulatedData, originalData)
                     data = longdata,
                     xlab = "",
                     ylab = "log (mean+1)", pal=c("cornflowerblue", "brown1"),
-                    main = "", point.cex=1.1, bar.lwd=1, cex.lab=2, cex.axis=2,cex.names=2)
+                    main = "", point.cex=1.1, bar.lwd=1, cex.lab=1.2, cex.axis=1.2,cex.names=1.2)
   
   X1 <- log(apply(simulatedCounts[XX,], 1, function(x) sd(x))+1)
   X2 <- log(apply(originalCounts[XX,], 1, function(x) sd(x))+1)
@@ -74,7 +74,7 @@ makePlots <- function(simulatedData, originalData)
                     data = longdata,
                     xlab = "",
                     ylab = "log (sd+1)", pal=c("cornflowerblue", "brown1"),
-                    main = "", point.cex=1.1, bar.lwd=1, cex.lab=2, cex.axis=2,cex.names=2)
+                    main = "", point.cex=1.1, bar.lwd=1, cex.lab=1.2, cex.axis=1.2,cex.names=1.2)
   
   
   
