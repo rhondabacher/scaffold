@@ -60,5 +60,10 @@ generateDynamicGeneCounts <- function(numCells, mu, dynamicParams) {
     use_dt$yvary <- rpois(rep(1,nrow(use_dt)), use_dt$yvals)
   })
   R <- t(cbind(R0,R1))
-  return(R)
+  
+  cellPopulation <- rep("NotDynamic", length(mu))
+  names(cellPopulation) <- names(mu)
+  cellPopulation[selectGenes] <- "Dynamic"
+  
+  return(list(R,cellPopulation))
 }

@@ -12,12 +12,16 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
   numCells <- sum(scaffoldParams@numCells)
   cellPopulation <- rep(1:length(scaffoldParams@numCells), scaffoldParams@numCells)
   
+  geneStatus <- NULL
   # Simulating dynamic populations
   if (!is.null(scaffoldParams@useDynamic[[1]])) {
-    initialCounts <- generateDynamicGeneCounts(numCells = numCells, 
+    dynamicsim <- generateDynamicGeneCounts(numCells = numCells, 
                                                mu = scaffoldParams@geneMeans, 
                                                dynamicParams = scaffoldParams@useDynamic)
+    initialCounts <- dynamicsim[[1]]
     rownames(initialCounts) <- scaffoldParams@genes
+    
+    geneStatus <- dynamicsim[[2]]
   } else {
     if (!is.null(scaffoldParams@usePops[[1]])) {
       cellSplit <- split(1:numCells, f=cellPopulation)
@@ -100,7 +104,8 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
     
     returnsce <- SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
                          metadata = list(initialSimCounts = initialCounts),
-                         colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)))
+                         colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)),
+                         rowData = data.frame(geneStatus = geneStatus))
   }
   
   if (scaffoldParams@protocol == "DROPLET") {
@@ -115,7 +120,8 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
     print("Finished sequencing and data formatting!")
     returnsce <- SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
                          metadata = list(initialSimCounts = initialCounts),
-                         colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)))
+                         colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)),
+                         rowData = data.frame(geneStatus = geneStatus))
   }
   return(returnsce)
 }
