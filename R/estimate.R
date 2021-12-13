@@ -27,7 +27,7 @@
 #' @importFrom stats rnorm runif var
 #' @importFrom methods new
 #' @importFrom Rfast Rnorm comb_n
-#' @importFrom Matrix colSums
+#' @importFrom Matrix colSums t
 #' @export
 estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NULL, numGenes = NULL, geneMeans = NULL,
       totalTranscripts = NULL, genes = NULL, protocol = "C1", useUMI = FALSE, 
@@ -45,7 +45,7 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
 
 		# Divide out depth before estimating the means.
   scaleFactor <- Matrix::colSums(counts(sce)) / totalTranscripts
-  scaleData <- t(t(counts(sce)) / scaleFactor)
+  scaleData <- Matrix::t(Matrix::t(counts(sce)) / scaleFactor)
   
   if (is.null(numCells)) {
     numCells <- ncol(counts(sce))

@@ -21,7 +21,8 @@ Imports:
     Rfast,
     data.table,
     iotools,
-    stringi
+    stringi,
+    Matrix
 URL: https://github.com/rhondabacher/scaffold
 BugReports: https://github.com/rhondabacher/scaffold/issues
 RoxygenNote: 7.1.1
