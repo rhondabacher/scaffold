@@ -141,6 +141,7 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
 #' @param protocol Which scRNA-seq protocol is being simulated.
 #' @param fromUMI whether or not the original data are UMI counts.
 #' @import stats
+#' @importFrom Matrix colMeans
 estimateCaptureEff <- function(Data, compareData, protocol, fromUMI) {
 
   gdetectRate <- rowSums(Data!=0) /ncol(Data)
@@ -152,7 +153,7 @@ estimateCaptureEff <- function(Data, compareData, protocol, fromUMI) {
    if (protocol=="10X" | fromUMI == TRUE) {
        minFuncUMI <- function(inGuess){
          tt <- pbinom(1, round(inGuess*nrow(Data)), Pweight[randG], log.p = TRUE)
-         avg.detection.raw = mean(colMeans(compareData > 0))
+         avg.detection.raw = mean(Matrix::colMeans(compareData > 0))
          X = abs((1 - mean(exp(tt), na.rm=T)) - avg.detection.raw)
          return(X)
        }
@@ -160,13 +161,13 @@ estimateCaptureEff <- function(Data, compareData, protocol, fromUMI) {
 	 } else if (protocol=="C1") {
          minFuncC1 <- function(inGuess){
             tt <- dbinom(0, round(inGuess*nrow(Data)), Pweight[randG], log = TRUE)
-            avg.detection.raw = mean(colMeans(compareData > 0))
+            avg.detection.raw = mean(Matrix::colMeans(compareData > 0))
             X = abs((1 - mean(exp(tt), na.rm=T)) - avg.detection.raw)
             return(X)
           }
          simparm <- optimize(minFuncC1, lower=0, upper=1, tol=1e-10)$minimum
      }
-	 getsd <- colMeans(compareData != 0)
+	 getsd <- Matrix::colMeans(compareData != 0)
 	 getsd <- mad(getsd, low = TRUE, constant = 1)
    simparm <- c(simparm, getsd)
 
