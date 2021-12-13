@@ -12,7 +12,7 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
   numCells <- sum(scaffoldParams@numCells)
   cellPopulation <- rep(1:length(scaffoldParams@numCells), scaffoldParams@numCells)
   
-  geneStatus <- NULL
+  geneStatus <- rep(NA, scaffoldParams@numGenes)
   # Simulating dynamic populations
   if (!is.null(scaffoldParams@useDynamic[[1]])) {
     dynamicsim <- generateDynamicGeneCounts(numCells = numCells, 

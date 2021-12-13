@@ -49,7 +49,7 @@ estimateScaffoldParameters(
 
 \item{useUMI}{A TRUE/FALSE indicating whether the protocol should use UMIs (Unique Molecular Identifiers). Droplet or 10X protocols have this set as TRUE for the default, otherwise FALSE.}
 
-\item{popHet}{a vector of length two to indicate the lower and upper bounds of the amount of perturbation applied to the simulated initial gene counts. This represents natural population heterogeneity. If NULL, scaffold will estimate from the data. To simulate a homogenous population, set popHet=c(1,1).}
+\item{popHet}{a vector of length two to indicate the lower and upper bounds of the amount of perturbation applied to the simulated initial gene counts. This represents natural population heterogeneity. If NULL, scaffold will estimate from the data. To simulate a homogenous population, set popHet=c(1,1). To simulate a moderately homogenous population, for example, try c(.6, 2). Values must be positive.}
 
 \item{geneEfficiency}{This parameter is not currently used, but may be implemented in a future release.}
 

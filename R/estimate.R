@@ -9,7 +9,7 @@
 #' @param genes A vector of names for each gene. If left NULL, the gene names from the \code{sce} object are used.
 #' @param protocol The protocol to model in the simulation (accepted input is: C1, droplet, 10X).
 #' @param useUMI A TRUE/FALSE indicating whether the protocol should use UMIs (Unique Molecular Identifiers). Droplet or 10X protocols have this set as TRUE for the default, otherwise FALSE.
-#' @param popHet a vector of length two to indicate the lower and upper bounds of the amount of perturbation applied to the simulated initial gene counts. This represents natural population heterogeneity. If NULL, scaffold will estimate from the data. To simulate a homogenous population, set popHet=c(1,1).
+#' @param popHet a vector of length two to indicate the lower and upper bounds of the amount of perturbation applied to the simulated initial gene counts. This represents natural population heterogeneity. If NULL, scaffold will estimate from the data. To simulate a homogenous population, set popHet=c(1,1). To simulate a moderately homogenous population, for example, try c(.6, 2). Values must be positive.
 #' @param geneEfficiency This parameter is not currently used, but may be implemented in a future release. 
 #' @param captureEfficiency A vector of values between 0 and 1 to indicate the proportion of mRNA molecules successfully captured for the genes in each cell. If left NULL, this value is estimated using the \code{sce} object.
 #' @param efficiencyRT If left NULL (default), this step of the protocol is skipped. Otherwise, the user can specify a vector of values between 0 and 1 to indicate the proportion of mRNA succesfully converted to cDNA.
@@ -85,7 +85,9 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
 		else
 			tagEfficiency <- .95
   }
-  
+  if (!is.null(popHet)) {
+    if (any(popHet <= 0)) stop("The population heterogeneity parameters must be positive!")
+  }
   if (is.null(popHet)) {
     popHet <- c()
     mycomb <- Rfast::comb_n(sum(numCells), 2)
