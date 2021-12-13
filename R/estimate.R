@@ -27,7 +27,7 @@
 #' @importFrom stats rnorm runif var
 #' @importFrom methods new
 #' @importFrom Rfast Rnorm comb_n
-#' @importFrom Matrix colSums t
+#' @importFrom Matrix colSums t rowMeans
 #' @export
 estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NULL, numGenes = NULL, geneMeans = NULL,
       totalTranscripts = NULL, genes = NULL, protocol = "C1", useUMI = FALSE, 
@@ -54,7 +54,7 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
     numGenes <- nrow(counts(sce))
   }
   if (is.null(geneMeans)) {
-    Mu <- rowMeans(scaleData)
+    Mu <- Matrix::rowMeans(scaleData)
     Mu[is.na(Mu)] <- min(Mu, na.rm=T)
     geneMeans <- Mu
   }
