@@ -106,7 +106,7 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
   if (scaffoldParams@protocol == "DROPLET") {
     print("Starting library prep and sequencing...")
     finalCounts <- sequenceStep10X(capturedMolecules, 
-                                   totalDepth = scaffoldParams@totalSD,
+                                   totalDepth = scaffoldParams@totalDepth,
                                    efficiencyPCR = scaffoldParams@ampEfficiency,
                                    roundsPCR = scaffoldParams@numAmpCycles,
                                    genes = scaffoldParams@genes,
