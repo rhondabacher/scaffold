@@ -61,8 +61,12 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
   if (is.null(genes)) {
     genes <- rownames(sce)
   }
-	if (protocol=="droplet") protocol <- "10X"
-
+  
+  protocol <- toupper(protocol)
+	if (protocol=="10X") protocol <- "DROPLET"
+	if (protocol=="C1") protocol <- "FULLLENGTH"
+    
+    
   if (is.null(equalizationAmount)) {
     equalizationAmount <- 1 # No equalization is default
   }
@@ -70,13 +74,13 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
     preAmpEfficiency <- Rfast::Rnorm(sum(numCells), .95, .02)
   }
   if (is.null(ampEfficiency)) {
-    if (protocol == "C1")
+    if (protocol == "FULLLENGTH")
       ampEfficiency <- Rfast::Rnorm(sum(numCells), .95, .02)
     else
       ampEfficiency <- 0.95
   }
   if (is.null(tagEfficiency)) {
-		if (protocol == "C1")
+		if (protocol == "FULLLENGTH")
     tagEfficiency <- Rfast::Rnorm(sum(numCells), .95, .02)
 		else
 			tagEfficiency <- .95
@@ -150,7 +154,7 @@ estimateCaptureEff <- function(Data, compareData, protocol, fromUMI) {
   splitG <- split(Rfast::Sort(Pweight), cut(seq_along(Rfast::Sort(Pweight)), 10, labels = FALSE))
   randG <- do.call(c,lapply(1:10, function(x) sample(names(splitG[[x]]), 100)))
 
-   if (protocol=="10X" | fromUMI == TRUE) {
+   if (protocol=="DROPLET" | fromUMI == TRUE) {
        minFuncUMI <- function(inGuess){
          tt <- pbinom(1, round(inGuess*nrow(Data)), Pweight[randG], log.p = TRUE)
          avg.detection.raw = mean(Matrix::colMeans(compareData > 0))
@@ -158,7 +162,7 @@ estimateCaptureEff <- function(Data, compareData, protocol, fromUMI) {
          return(X)
        }
 	  simparm <- optimize(minFuncUMI, lower=0, upper=1, tol=1e-10)$minimum
-	 } else if (protocol=="C1") {
+	 } else if (protocol=="FULLLENGTH") {
          minFuncC1 <- function(inGuess){
             tt <- dbinom(0, round(inGuess*nrow(Data)), Pweight[randG], log = TRUE)
             avg.detection.raw = mean(Matrix::colMeans(compareData > 0))

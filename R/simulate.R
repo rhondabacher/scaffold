@@ -74,7 +74,7 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
   
   # Now we split between the different protocols
   
-  if (scaffoldParams@protocol == "C1") {
+  if (scaffoldParams@protocol == "FULLLENGTH") {
     print("Starting preamplify step...")
     amplifiedMolecules <- preamplifyStep(capturedMolecules = capturedMolecules,
                                          genes = scaffoldParams@genes,
@@ -103,7 +103,7 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
                          colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)))
   }
   
-  if (scaffoldParams@protocol == "10x" || scaffoldParams@protocol == "droplet") {
+  if (scaffoldParams@protocol == "DROPLET") {
     print("Starting library prep and sequencing...")
     finalCounts <- sequenceStep10X(capturedMolecules, 
                                    totalDepth = scaffoldParams@totalSD,
