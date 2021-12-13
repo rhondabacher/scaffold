@@ -27,6 +27,7 @@
 #' @importFrom stats rnorm runif var
 #' @importFrom methods new
 #' @importFrom Rfast Rnorm comb_n
+#' @importFrom Matrix colSums
 #' @export
 estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NULL, numGenes = NULL, geneMeans = NULL,
       totalTranscripts = NULL, genes = NULL, protocol = "C1", useUMI = FALSE, 
@@ -43,7 +44,7 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
   if (is.null(totalTranscripts)) totalTranscripts <- 300000
 
 		# Divide out depth before estimating the means.
-  scaleFactor <- colSums(counts(sce)) / totalTranscripts
+  scaleFactor <- Matrix::colSums(counts(sce)) / totalTranscripts
   scaleData <- t(t(counts(sce)) / scaleFactor)
   
   if (is.null(numCells)) {
@@ -84,7 +85,7 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
   if (is.null(popHet)) {
     popHet <- c()
     mycomb <- Rfast::comb_n(sum(numCells), 2)
-    lib_size <- colSums(counts(sce))
+    lib_size <- Matrix::colSums(counts(sce))
     if (sum(numCells) != length(lib_size)) {
       lib_size <- sample(lib_size, sum(numCells), replace=TRUE)
     }
