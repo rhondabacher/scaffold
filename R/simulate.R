@@ -19,8 +19,6 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
                                                mu = scaffoldParams@geneMeans, 
                                                dynamicParams = scaffoldParams@useDynamic)
     initialCounts <- dynamicsim[[1]]
-    rownames(initialCounts) <- scaffoldParams@genes
-    
     geneStatus <- dynamicsim[[2]]
   } else {
     if (!is.null(scaffoldParams@usePops[[1]])) {

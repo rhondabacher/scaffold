@@ -29,8 +29,8 @@ generateGeneCounts <- function(numCells, mu, popHet) {
 generateDynamicGeneCounts <- function(numCells, mu, dynamicParams) {
   
 
-    selectGenes <- sample(names(mu), ceiling(dynamicParams$propGenes*length(mu)))
-    otherGenes <- setdiff(names(mu), selectGenes)
+  selectGenes <- sample(names(mu), ceiling(dynamicParams$propGenes*length(mu)))
+  otherGenes <- setdiff(names(mu), selectGenes)
 
   R0 <- matrix(sapply(otherGenes, function(x) rpois(numCells, mu[x])), nrow=numCells)
 
@@ -60,6 +60,8 @@ generateDynamicGeneCounts <- function(numCells, mu, dynamicParams) {
     use_dt$yvary <- rpois(rep(1,nrow(use_dt)), use_dt$yvals)
   })
   R <- t(cbind(R0,R1))
+  rownames(R) <- c(otherGenes, selectGenes)
+  R <- R[names(mu),] # original sort
   
   cellPopulation <- rep("NotDynamic", length(mu))
   names(cellPopulation) <- names(mu)
