@@ -1,4 +1,4 @@
-# Scaffold: data-generation simulaton of single-cell RNA-seq data
+# Scaffold: data-generation simulation of single-cell RNA-seq data
 
 `Scaffold` is an R package for generating scRNA-seq data by
 statistically modeling each step of the experimental data generation
