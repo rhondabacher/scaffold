@@ -10,13 +10,12 @@
 #' @return Output is matrix of counts, genes on the rows and cells
 #'   on the columns.
 #'
-#' @importFrom stats rpois
+#' @importFrom stats rpois runif
 #' @importFrom Rfast Sort
 generateGeneCounts <- function(numCells, mu, popHet) {
 	
-    R <- matrix(sapply(1:length(mu), function(x) rpois(numCells, mu[x])), nrow=numCells)
-
-    R <- t(R*Rfast::Sort(runif(nrow(R), popHet[1], popHet[2])))
+    R <- matrix(sapply(1:length(mu), function(x) stats::rpois(numCells, mu[x])), nrow = numCells)
+    R <- t(R*Rfast::Sort(stats::runif(nrow(R), popHet[1], popHet[2])))
   
   return(R)
 }
@@ -25,11 +24,16 @@ generateGeneCounts <- function(numCells, mu, popHet) {
 ## The motivation for this code is from the simstudy package.
 #' @inheritParams generateGeneCounts
 #' @inheritParams estimateScaffoldParameters
-#' @import splines
+#' @importFrom splines bs
+#' @importFrom data.table data.table
 generateDynamicGeneCounts <- function(numCells, mu, dynamicParams) {
   
-
-  selectGenes <- sample(names(mu), ceiling(dynamicParams$propGenes*length(mu)))
+  if (is.null(dynamicParams$dynGenes)) {
+    selectGenes <- sample(names(mu), ceiling(dynamicParams$propGenes*length(mu)))
+  } else {
+    selectGenes <- dynamicParams$dynGenes
+    if (!all(selectGenes %in% names(mu))) { stop("Some of the proposed dynamic genes from dynamicParams are not in the SCE object.") }
+  }
   otherGenes <- setdiff(names(mu), selectGenes)
 
   R0 <- matrix(sapply(otherGenes, function(x) rpois(numCells, mu[x])), nrow=numCells)
@@ -53,10 +57,13 @@ generateDynamicGeneCounts <- function(numCells, mu, dynamicParams) {
     theta <- alltheta[x,]
     theta <- sqrt(mu[x])*scale(theta, T, F) + mu[x]
     theta[theta<0] <- 0
-    basis <- bs(x = genpts, knots = knots, degree = dynamicParams$degree,
-                Boundary.knots = c(0,1), intercept = TRUE)
+    basis <- splines::bs(x = genpts, 
+                         knots = knots, 
+                         degree = dynamicParams$degree, 
+                         Boundary.knots = c(0, 1), 
+                         intercept = TRUE)
     resp <- basis %*% theta
-    use_dt <- data.table(xvals = genpts, yvals = resp[,1])
+    use_dt <- data.table::data.table(xvals = genpts, yvals = resp[,1])
     use_dt$yvary <- rpois(rep(1,nrow(use_dt)), use_dt$yvals)
   })
   R <- t(cbind(R0,R1))
