@@ -23,7 +23,9 @@ Details and examples on how to use the Scaffold R package are located:
 
 # Citation
 
-Additional details on the scaffold simulation scheme is available in the manuscript: [Rhonda Bacher, Li-Fang Chu, Cara Argus, Jennifer M Bolin, Parker Knight, James A Thomson, Ron Stewart, Christina Kendziorski, Enhancing biological signals and detection rates in single-cell RNA-seq experiments with cDNA library equalization, Nucleic Acids Research, Volume 50, Issue 2, 25 January 2022, Page e12, https://doi.org/10.1093/nar/gkab1071](https://academic.oup.com/nar/article/50/2/e12/6438026).
+Additional details on the Scaffold simulation scheme are available in the manuscript: 
+
+[Rhonda Bacher, Li-Fang Chu, Cara Argus, Jennifer M Bolin, Parker Knight, James A Thomson, Ron Stewart, Christina Kendziorski, Enhancing biological signals and detection rates in single-cell RNA-seq experiments with cDNA library equalization, Nucleic Acids Research, Volume 50, Issue 2, 25 January 2022, Page e12, https://doi.org/10.1093/nar/gkab1071](https://academic.oup.com/nar/article/50/2/e12/6438026).
 
 
 # Contact/Maintainer
