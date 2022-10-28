@@ -27,7 +27,8 @@ estimateScaffoldParameters(
   equalizationAmount = 1,
   totalDepth = NULL,
   usePops = NULL,
-  useDynamic = NULL
+  useDynamic = NULL,
+  rand.seed = 312
 )
 }
 \arguments{
@@ -76,6 +77,8 @@ estimateScaffoldParameters(
 \item{usePops}{This should be a named list with elements: propGenes, fc_mean, fc_sd. The elements are vectors with length one less than the number of cell populations. propGenes indicates the proportion of genes having distinct expression compared to the first cell population. fc_mean and fc_sd control each populations fold-change mean and standard deviation.}
 
 \item{useDynamic}{This should be a named list with elements: propGenes, dynGenes, degree, knots, and theta. propGenes indicates the proportion of genes that should be simulated dynamic. dynGenes is an optional parameter detailing an exact list of genes that will be generated as dynamic. degree, knots, and theta control the spline parameters to generate dynamic trends.}
+
+\item{rand.seed}{(Optional) If \code{numGenes} is smaller than the number of genes in \code{sce}, the seed used to ensure reproducibility when subsampling genes. Defaults to 312.}
 }
 \description{
 Estimate or set all parameters for Scaffold simulation.
