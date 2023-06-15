@@ -1,3 +1,4 @@
+![GitHub all releases](https://img.shields.io/github/downloads/rhondabacher/scaffold/total?style=flat-square)
 
 # Scaffold: data-generation simulation of single-cell RNA-seq data
 
