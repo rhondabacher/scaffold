@@ -23,6 +23,7 @@
 #' @param totalDepth The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object.
 #' @param usePops This should be a named list with elements: propGenes, fc_mean, fc_sd. The elements are vectors with length one less than the number of cell populations. propGenes indicates the proportion of genes having distinct expression compared to the first cell population. fc_mean and fc_sd control each populations fold-change mean and standard deviation.
 #' @param useDynamic This should be a named list with elements: propGenes, dynGenes, degree, knots, and theta. propGenes indicates the proportion of genes that should be simulated dynamic. dynGenes is an optional parameter detailing an exact list of genes that will be generated as dynamic. degree, knots, and theta control the spline parameters to generate dynamic trends.
+#' @param rand.seed (Optional) If \code{numGenes} is smaller than the number of genes in \code{sce}, the seed used to ensure reproducibility when subsampling genes. Defaults to 312. 
 #'
 #' @importFrom stats rnorm runif var
 #' @importFrom methods new
@@ -36,7 +37,7 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
 			captureEfficiency = NULL, efficiencyRT = NULL, typeOfAmp = "PCR", numPreAmpCycles = 18,
 			numAmpCycles = 12, preAmpEfficiency = NULL, ampEfficiency = NULL, tagEfficiency = NULL,
 			equalizationAmount = 1, totalDepth = NULL,
-      usePops = NULL, useDynamic = NULL)
+      usePops = NULL, useDynamic = NULL, rand.seed = 312)
 {
 	
 	## Setting up the default values:
@@ -60,6 +61,12 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
   }
   if (is.null(genes)) {
     genes <- rownames(sce)
+  }
+  if (numGenes != nrow(sce)) {
+    set.seed(rand.seed)
+    gene_sample <- sample(1:nrow(sce), numGenes, replace = FALSE)
+    geneMeans <- geneMeans[gene_sample]
+    genes <- genes[gene_sample]
   }
   
   protocol <- toupper(protocol)

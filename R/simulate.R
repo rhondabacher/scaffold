@@ -16,8 +16,8 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
   # Simulating dynamic populations
   if (!is.null(scaffoldParams@useDynamic[[1]])) {
     dynamicsim <- generateDynamicGeneCounts(numCells = numCells, 
-                                               mu = scaffoldParams@geneMeans, 
-                                               dynamicParams = scaffoldParams@useDynamic)
+                                            mu = scaffoldParams@geneMeans, 
+                                            dynamicParams = scaffoldParams@useDynamic)
     initialCounts <- dynamicsim[[1]]
     geneStatus <- dynamicsim[[2]]
   } else {
