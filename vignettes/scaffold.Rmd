@@ -77,7 +77,7 @@ contains the simulated gene counts.
 
 To access the simulated counts:
 
-```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=TRUE}
 simcounts <- counts(sce_sim)
 simcounts[1:5,1:5]
 ```
