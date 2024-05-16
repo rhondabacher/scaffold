@@ -1,7 +1,7 @@
 Package: scaffold
 Type: Package
 Title: Simulation framework that models each step of a single-cell RNA-seq experiment
-Version: 0.2.1
+Version: 0.3.0
 Author: Rhonda Bacher
 Maintainer: Rhonda Bacher <rbacher@ufl.edu>
 Description: This package implements Scaffold — a method to simulate scRNA-seq data.
@@ -24,7 +24,7 @@ Imports:
     Matrix
 URL: https://github.com/rhondabacher/scaffold
 BugReports: https://github.com/rhondabacher/scaffold/issues
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Depends: 
     R (>= 2.10)
 Suggests: BiocStyle, knitr, rmarkdown, BiocManager, RcppZiggurat, scater

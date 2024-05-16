@@ -4,7 +4,12 @@
 \alias{simulateScaffold}
 \title{Run a Scaffold simulation.}
 \usage{
-simulateScaffold(scaffoldParams, originalSCE, inputInitial = NULL)
+simulateScaffold(
+  scaffoldParams,
+  originalSCE,
+  inputInitial = NULL,
+  outInitial = FALSE
+)
 }
 \arguments{
 \item{scaffoldParams}{An object of class ScaffoldParams. Generated using the Scaffold::estimateScaffoldParameters function.}

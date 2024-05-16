@@ -3,10 +3,11 @@
 #' @param scaffoldParams An object of class ScaffoldParams. Generated using the Scaffold::estimateScaffoldParameters function.
 #' @param originalSCE The SingleCellExperiment used to create the scaffoldParams object.
 #' @param inputInitial A optional matrix of initial gene counts which should have the same dimension indicated in the \code{scaffoldParams} parameter. If left NULL, the initial counts will be generated according to the distribution indicated by the \code{model} parameter. This is mainly used in simulations to isolate the effects of each step without regenerating a new initial mRNA counts.
+#` @param outInitial (TRUE/FALSE) option on whether to output the initial counts per cell matrix prior to any experimental procedures. This could be used to assess truly simulated zeros versus technical zeros.
 #'
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @export
-simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
+simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL, outInitial=FALSE)
 {
   
   numCells <- sum(scaffoldParams@numCells)
@@ -99,8 +100,10 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
     if(is.null(finalCounts$umi_counts)) {
       finalCounts$umi_counts <- matrix(NA, nrow=nrow(finalCounts$counts), ncol=ncol(finalCounts$counts))
     }
-    
-    returnsce <- SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
+    if(!outInitial) {
+      initialCounts <- matrix(NA, nrow=nrow(finalCounts$counts), ncol=ncol(finalCounts$counts))
+    }
+    returnsce <- SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts, initial=initialCounts),
                          metadata = list(initialSimCounts = initialCounts),
                          colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)),
                          rowData = data.frame(geneStatus = geneStatus))
@@ -116,7 +119,10 @@ simulateScaffold <- function(scaffoldParams, originalSCE, inputInitial=NULL)
                                    efficiencyTag = scaffoldParams@tagEfficiency,
                                    useUMI = scaffoldParams@useUMI)
     print("Finished sequencing and data formatting!")
-    returnsce <- SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts),
+    if(!outInitial) {
+      initialCounts <- matrix(NA, nrow=nrow(finalCounts$counts), ncol=ncol(finalCounts$counts))
+    }
+    returnsce <- SingleCellExperiment(assays = list(counts = finalCounts$counts, umi_counts=finalCounts$umi_counts, initial=initialCounts),
                          metadata = list(initialSimCounts = initialCounts),
                          colData = data.frame(capEfficiency = capEfficiency, cellPopulation = factor(cellPopulation)),
                          rowData = data.frame(geneStatus = geneStatus))
