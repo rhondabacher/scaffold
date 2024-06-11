@@ -20,7 +20,7 @@
 #' @param ampEfficiency A vector of values between 0 and 1 indicating the efficiency of the second simulated amplification cycle. For droplet/10X protocols this should be a vector of length one (a single value).
 #' @param tagEfficiency A value between 0 and 1 indicating the tagmentation efficiency.
 #' @param equalizationAmount A value between 0 and 1 indicating the q* to determine the number of samples that undergo dilution in the equalization step of the simulation. A value of 0 indicates all cells are diluted to the smallest concentration and a value of 1 indicates no equalization is performed.
-#' @param totalDepth The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object.
+#' @param totalDepth The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object. If more cells are generated than in the original dataset, then the totalDepth will be scaled up accordingly.
 #' @param usePops This should be a named list with elements: propGenes, fc_mean, fc_sd. The elements are vectors with length one less than the number of cell populations. propGenes indicates the proportion of genes having distinct expression compared to the first cell population. fc_mean and fc_sd control each populations fold-change mean and standard deviation.
 #' @param useDynamic This should be a named list with elements: propGenes, dynGenes, degree, knots, and theta. propGenes indicates the proportion of genes that should be simulated dynamic. dynGenes is an optional parameter detailing an exact list of genes that will be generated as dynamic. degree, knots, and theta control the spline parameters to generate dynamic trends.
 #' @param rand.seed (Optional) If \code{numGenes} is smaller than the number of genes in \code{sce}, the seed used to ensure reproducibility when subsampling genes. Defaults to 312. 
@@ -113,7 +113,7 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
     popHet[2] <- quantile(allComb, .95)
   }
   if (is.null(totalDepth)) {
-    totalDepth <- sum(counts(sce))
+    totalDepth <- numCells*(sum(counts(sce)) / ncol(sce))
   }
 	
   if (protocol %in% c("DROPLET","10X")) {
