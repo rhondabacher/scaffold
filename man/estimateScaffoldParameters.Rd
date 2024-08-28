@@ -72,7 +72,7 @@ estimateScaffoldParameters(
 
 \item{equalizationAmount}{A value between 0 and 1 indicating the q* to determine the number of samples that undergo dilution in the equalization step of the simulation. A value of 0 indicates all cells are diluted to the smallest concentration and a value of 1 indicates no equalization is performed.}
 
-\item{totalDepth}{The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object.}
+\item{totalDepth}{The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object. If more cells are generated than in the original dataset, then the totalDepth will be scaled up accordingly.}
 
 \item{usePops}{This should be a named list with elements: propGenes, fc_mean, fc_sd. The elements are vectors with length one less than the number of cell populations. propGenes indicates the proportion of genes having distinct expression compared to the first cell population. fc_mean and fc_sd control each populations fold-change mean and standard deviation.}
 
