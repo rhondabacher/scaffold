@@ -113,7 +113,7 @@ estimateScaffoldParameters <- function(sce = NULL, sceUMI = FALSE, numCells = NU
     popHet[2] <- quantile(allComb, .95)
   }
   if (is.null(totalDepth)) {
-    totalDepth <- numCells*(sum(counts(sce)) / ncol(sce))
+    totalDepth <- sum(numCells)*(sum(counts(sce)) / ncol(sce))
   }
 	
   if (protocol %in% c("DROPLET","10X")) {

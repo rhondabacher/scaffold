@@ -51,15 +51,22 @@ sequenceStepC1 <- function(amplifiedMolecules,
 	 
 	 print("Beginning formatting output...")
 	 
-	 cnt_split <- unlist(strsplit(rownames(counts), split="__", fixed=TRUE))
-	 cnt_split <- data.table(Gene = (cnt_split)[c(TRUE,FALSE)], Cell = (cnt_split)[c(FALSE,TRUE)], Count = counts[,1])
-
+	 cnt_split <- data.table::tstrsplit(rownames(counts), split="__", fixed=TRUE)
+   cnt_split.df <- data.table(Gene = cnt_split[[1]], 
+   	                        Cell = cnt_split[[2]], Count = counts[,1])
+   cnt_split.df$Cell <- as.numeric(cnt_split.df$Cell)
+  
+   rm(counts)
+   rm(cnt_split)
+     
 	 print(paste0("Processing output for ",numCells ," cells."))
-	 cnt_split$Cell <- factor(cnt_split$Cell)
-	 cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
-	 cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
    
-     my_tabs <-  lapply(1:length(cnt_split_cell), function(x) {
+   cnt_split.df$Cell <- factor(cnt_split.df$Cell)
+   srtd_labels <- paste(sort(as.integer(levels(cnt_split.df$Cell))))
+   cnt_split.df$Cell <- factor(cnt_split.df$Cell, levels = srtd_labels)
+   cnt_split_cell <- split(cnt_split.df, f = cnt_split.df$Cell)
+       
+   my_tabs <-  lapply(1:length(cnt_split_cell), function(x) {
 			 	 X <- cnt_split_cell[[x]]
 			   X$ugenes <- gsub("@.*","",X$Gene)  
 			   X <- X[order(X$ugenes),]
@@ -90,12 +97,12 @@ sequenceStepC1 <- function(amplifiedMolecules,
 	
 	   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
 	   colnames(count_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
-	   rownames(count_tab) <- genes
+     # rownames(count_tab) <- genes
 	   
 		 if (useUMI==TRUE) {
 			 umi_tab <- do.call(cbind, sapply(my_tabs, function(x) x[2]))
 			 colnames(umi_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
-			 rownames(umi_tab) <- genes
+       # rownames(umi_tab) <- genes
 		 }
 	  
 	 return(list(counts = count_tab, umi_counts = umi_tab))
@@ -145,11 +152,19 @@ sequenceStep10X <- function(capturedMolecules, totalDepth,
   
   ## Split matrix into nicer output:
   print(paste0("Processing output for ", numCells ," cells."))
-	cnt_split <- unlist(strsplit(rownames(counts), split="__", fixed=TRUE))
-	cnt_split <- data.table(Gene = (cnt_split)[c(TRUE,FALSE)], Cell = (cnt_split)[c(FALSE,TRUE)], Count = counts[,1])
-  cnt_split$Cell <- factor(cnt_split$Cell)
-  cnt_split$Cell <- factor(cnt_split$Cell, levels = order(levels(cnt_split$Cell)))
-  cnt_split_cell <- split(cnt_split, f = cnt_split$Cell)
+  
+  cnt_split <- data.table::tstrsplit(rownames(counts), split="__", fixed=TRUE)
+  cnt_split.df <- data.table(Gene = cnt_split[[1]], 
+  	                        Cell = cnt_split[[2]], Count = counts[,1])
+  cnt_split.df$Cell <- as.numeric(cnt_split.df$Cell)
+  
+  rm(cnt_split)
+  rm(counts)
+  
+  cnt_split.df$Cell <- factor(cnt_split.df$Cell)
+  srtd_labels <- paste(sort(as.integer(levels(cnt_split.df$Cell))))
+  cnt_split.df$Cell <- factor(cnt_split.df$Cell, levels = srtd_labels)
+  cnt_split_cell <- split(cnt_split.df, f = cnt_split.df$Cell)
 	
 
   my_tabs <-  lapply(1:length(cnt_split_cell), function(x) {
@@ -179,10 +194,11 @@ sequenceStep10X <- function(capturedMolecules, totalDepth,
  
   count_tab <- do.call(cbind, sapply(my_tabs, function(x) x[1]))
   colnames(count_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
-  rownames(count_tab) <- genes
+  # rownames(count_tab) <- genes
   
   umi_tab <- do.call(cbind, sapply(my_tabs, function(x) x[2]))
   colnames(umi_tab) <- stringi::stri_c("Cell", 1:numCells, sep="_")
-  rownames(umi_tab) <- genes
+  # rownames(umi_tab) <- genes
+  
   return(list(counts = count_tab, umi_counts = umi_tab))
 }
