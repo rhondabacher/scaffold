@@ -1,5 +1,13 @@
 #' Capture cDNA from cell (cell lysis and conversion of mRNA to cDNA)
+#' @param Data A rounded numeric matrix of gene expression counts.
+#' @param captureEffCell A vector of values between 0 and 1 to indicate the proportion of mRNA molecules successfully captured for the genes in each cell.
+#' @param captureEffGene A vector of values between 0 and 1. If left NULL, all genes are assumed to have equal capture efficiency, and the vector is normalized to sum to 1.
+#' @param rtEffCell A vector of values between 0 and 1 to indicate the proportion of mRNA succesfully converted to cDNA.
+#' @param rtEffGene A vector with values normalized to sum to 1.
+#' @param useUMI A TRUE/FALSE indicating whether the protocol should use UMIs (Unique Molecular Identifiers). Droplet or 10X protocols have this set as TRUE for the default, otherwise FALSE.
+#' 
 #' @importFrom wrswoR sample_int_rej
+#' @export
 captureStep <- function(Data, captureEffCell = NULL, captureEffGene = NULL, 
                         rtEffCell = NULL, rtEffGene = NULL, useUMI = FALSE){
   

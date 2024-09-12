@@ -10,6 +10,8 @@ generateDynamicGeneCounts(numCells, mu, dynamicParams)
 \item{numCells}{The number of cells to generate counts for.}
 
 \item{mu}{a vector containing the mean of each gene to simulate counts for.}
+
+\item{dynamicParams}{This should be a named list with elements: propGenes, dynGenes, degree, knots, and theta. propGenes indicates the proportion of genes that should be simulated dynamic. dynGenes is an optional parameter detailing an exact list of genes that will be generated as dynamic. degree, knots, and theta control the spline parameters to generate dynamic trends.}
 }
 \description{
 Generate a dynamic cell population

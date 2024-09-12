@@ -14,6 +14,21 @@ sequenceStep10X(
   useUMI
 )
 }
+\arguments{
+\item{capturedMolecules}{A list of captured molecules for each sample.}
+
+\item{totalDepth}{The total sequencing depth of the simulated data. If left NULL, this is taken from the \code{sce} object. If more cells are generated than in the original dataset, then the totalDepth will be scaled up accordingly.}
+
+\item{efficiencyPCR}{A numeric vector representing the efficiency of PCR for each sample.}
+
+\item{roundsPCR}{An integer indicating the number of PCR amplification rounds.}
+
+\item{efficiencyTag}{A numeric vector representing the efficiency of tagging for each cell.}
+
+\item{genes}{A vector of names for each gene. If left NULL, the gene names from the \code{sce} object are used.}
+
+\item{useUMI}{A TRUE/FALSE indicating whether the protocol should use UMIs (Unique Molecular Identifiers). Droplet or 10X protocols have this set as TRUE for the default, otherwise FALSE.}
+}
 \description{
 Sequencing step of the Scaffold simulation for 10X/droplet
 }

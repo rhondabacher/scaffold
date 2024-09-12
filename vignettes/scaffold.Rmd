@@ -68,7 +68,7 @@ The `estimateScaffoldParameters` function documentation describes all the parame
 Once the `ScaffoldParams` object is constructed, simulations can be
 run with the `simulateScaffold` function. The inputs to this function are the parameter object and the original sce dataset.
 
-```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
+```{r, warning = FALSE, error = FALSE, message=FALSE, eval=TRUE}
 sce_sim <- simulateScaffold(scaffoldParams, sce)
 ```
 
@@ -227,15 +227,14 @@ To simulate more than 5k cells, it's best to run Scaffold in batches especially 
 
 ```{r, warning = FALSE, error = FALSE, message=FALSE, eval=FALSE}
 # Baseline simulation
-scaffoldParams <- estimateScaffoldParameters(sce)
+scaffoldParams <- estimateScaffoldParameters(sce, numCells = 2000)
 sce_sim <- simulateScaffold(scaffoldParams, sce)
 
 # To keep all parameters the same, pull out the capture efficiencies and the initial mRNA counts. 
 ## Then this can be used to cells e.g 2k at a time.
 scaffoldParams@captureEfficiency <- colData(sce_sim)$capEfficiency
-scaffoldParams@numCells <- 2000
 sce_sim_eq <- simulateScaffold(scaffoldParams, sce, 
-                               inputInitial = sce_sim@metadata$initialSimCounts)
+                               inputInitial = sce_sim@assays@data$initial)
 ```
 
 
