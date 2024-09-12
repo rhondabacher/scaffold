@@ -13,6 +13,19 @@ preamplifyStep(
   useUMI
 )
 }
+\arguments{
+\item{capturedMolecules}{A truncated lists of genes.}
+
+\item{genes}{A vector of names for each gene. If left NULL, the gene names from the \code{sce} object are used.}
+
+\item{efficiencyPCR}{A numeric vector representing the efficiency of PCR for each sample.}
+
+\item{rounds}{An integer specifying the number of PCR or IVT amplification rounds to perform.}
+
+\item{typeAMP}{The amplification method used in the simulation, defaults to "PCR", "IVT" is another accepted value.}
+
+\item{useUMI}{A TRUE/FALSE indicating whether the protocol should use UMIs (Unique Molecular Identifiers). Droplet or 10X protocols have this set as TRUE for the default, otherwise FALSE.}
+}
 \description{
 Pre-amplification step
 }

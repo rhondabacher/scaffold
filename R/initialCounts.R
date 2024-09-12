@@ -24,8 +24,10 @@ generateGeneCounts <- function(numCells, mu, popHet) {
 ## The motivation for this code is from the simstudy package
 #' @inheritParams generateGeneCounts
 #' @inheritParams estimateScaffoldParameters
+#' @param dynamicParams This should be a named list with elements: propGenes, dynGenes, degree, knots, and theta. propGenes indicates the proportion of genes that should be simulated dynamic. dynGenes is an optional parameter detailing an exact list of genes that will be generated as dynamic. degree, knots, and theta control the spline parameters to generate dynamic trends.
 #' @importFrom splines bs
 #' @importFrom data.table data.table
+#' @export
 generateDynamicGeneCounts <- function(numCells, mu, dynamicParams) {
   
   if (is.null(dynamicParams$dynGenes)) {

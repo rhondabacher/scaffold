@@ -6,6 +6,17 @@
 \usage{
 amplifyStep(capturedMolecules, genes, efficiencyPCR, rounds, protocol)
 }
+\arguments{
+\item{capturedMolecules}{A truncated lists of genes.}
+
+\item{genes}{A vector of names for each gene. If left NULL, the gene names from the \code{sce} object are used.}
+
+\item{efficiencyPCR}{A numeric vector representing the efficiency of PCR for each sample.}
+
+\item{rounds}{An integer specifying the number of PCR or IVT amplification rounds to perform.}
+
+\item{protocol}{The protocol to model in the simulation (accepted input is: C1, droplet, 10X).}
+}
 \description{
 The second amplification step
 }

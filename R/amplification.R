@@ -1,4 +1,11 @@
 #' Pre-amplification step
+#' @param capturedMolecules A truncated lists of genes.
+#' @param genes A vector of names for each gene. If left NULL, the gene names from the \code{sce} object are used.
+#' @param efficiencyPCR A numeric vector representing the efficiency of PCR for each sample.
+#' @param rounds An integer specifying the number of PCR or IVT amplification rounds to perform.
+#' @param typeAMP The amplification method used in the simulation, defaults to "PCR", "IVT" is another accepted value.
+#' @param useUMI A TRUE/FALSE indicating whether the protocol should use UMIs (Unique Molecular Identifiers). Droplet or 10X protocols have this set as TRUE for the default, otherwise FALSE.
+#' 
 #' @importFrom Rfast Table rep_col
 preamplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, typeAMP, useUMI){
 
@@ -24,6 +31,11 @@ preamplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, type
 }
 
 #' The second amplification step
+#' @param capturedMolecules A truncated lists of genes.
+#' @param genes A vector of names for each gene. If left NULL, the gene names from the \code{sce} object are used.
+#' @param efficiencyPCR A numeric vector representing the efficiency of PCR for each sample.
+#' @param rounds An integer specifying the number of PCR or IVT amplification rounds to perform.
+#' @param protocol The protocol to model in the simulation (accepted input is: C1, droplet, 10X).
 amplifyStep <- function(capturedMolecules, genes, efficiencyPCR, rounds, protocol){
 
   if (protocol == "C1")

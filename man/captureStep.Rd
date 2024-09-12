@@ -13,6 +13,19 @@ captureStep(
   useUMI = FALSE
 )
 }
+\arguments{
+\item{Data}{A rounded numeric matrix of gene expression counts.}
+
+\item{captureEffCell}{A vector of values between 0 and 1 to indicate the proportion of mRNA molecules successfully captured for the genes in each cell.}
+
+\item{captureEffGene}{A vector of values between 0 and 1. If left NULL, all genes are assumed to have equal capture efficiency, and the vector is normalized to sum to 1.}
+
+\item{rtEffCell}{A vector of values between 0 and 1 to indicate the proportion of mRNA succesfully converted to cDNA.}
+
+\item{rtEffGene}{A vector with values normalized to sum to 1.}
+
+\item{useUMI}{A TRUE/FALSE indicating whether the protocol should use UMIs (Unique Molecular Identifiers). Droplet or 10X protocols have this set as TRUE for the default, otherwise FALSE.}
+}
 \description{
 Capture cDNA from cell (cell lysis and conversion of mRNA to cDNA)
 }
